@@ -58,6 +58,31 @@ function normalizeSpec(raw, index) {
         order: typeof item.order === 'number' && Number.isFinite(item.order) ? item.order : index + 1
     };
 }
+function normalizeTagList(raw) {
+    if (Array.isArray(raw)) {
+        return parseTags(raw.map((item)=>normalizeText(item)).filter(Boolean).join(','));
+    }
+    if (typeof raw === 'string') {
+        return parseTags(raw);
+    }
+    if (raw && typeof raw === 'object') {
+        return parseTags(Object.values(raw).map((item)=>normalizeText(item)).join(','));
+    }
+    return [];
+}
+function normalizeSpecList(raw) {
+    if (Array.isArray(raw)) {
+        return normalizeSpecs(raw.map((spec, specIndex)=>normalizeSpec(spec, specIndex)).filter(Boolean));
+    }
+    if (raw && typeof raw === 'object') {
+        return normalizeSpecs(Object.entries(raw).map(([label, value], specIndex)=>normalizeSpec({
+                label,
+                value: normalizeText(value),
+                order: specIndex + 1
+            }, specIndex)).filter(Boolean));
+    }
+    return [];
+}
 function normalizeProduct(raw, index, categories) {
     const item = raw && typeof raw === 'object' ? raw : {};
     const categoryId = normalizeText(item.categoryId);
@@ -74,9 +99,9 @@ function normalizeProduct(raw, index, categories) {
         officialPrice: typeof item.officialPrice === 'number' && Number.isFinite(item.officialPrice) ? item.officialPrice : null,
         hot: Boolean(item.hot),
         summary: normalizeText(item.summary),
-        tags: Array.isArray(item.tags) ? parseTags(item.tags.join(',')) : [],
+        tags: normalizeTagList(item.tags),
         image: normalizeText(item.image),
-        specs: normalizeSpecs((Array.isArray(item.specs) ? item.specs : []).map((spec, specIndex)=>normalizeSpec(spec, specIndex)).filter(Boolean)),
+        specs: normalizeSpecList(item.specs),
         createdAt: normalizeText(item.createdAt) || timestamp,
         updatedAt: timestamp
     };

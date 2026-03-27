@@ -714,6 +714,31 @@ function loadSharedDatabaseSync() {
     return null;
 }
 
+function getSharedProductTagsText(tags) {
+    if (Array.isArray(tags)) {
+        return tags.map(normalizeLegacyText).filter(Boolean).join(' | ');
+    }
+    if (tags && typeof tags === 'object') {
+        return Object.values(tags).map(normalizeLegacyText).filter(Boolean).join(' | ');
+    }
+    return normalizeLegacyText(tags);
+}
+
+function getSharedProductSpecRows(specs) {
+    if (Array.isArray(specs)) {
+        return [...specs].sort((left, right) => (left.order || 0) - (right.order || 0));
+    }
+    if (specs && typeof specs === 'object') {
+        return Object.keys(specs).map((key, index) => ({
+            id: '',
+            label: key,
+            value: specs[key],
+            order: index + 1
+        }));
+    }
+    return [];
+}
+
 function convertSharedDatabaseToLegacy(sharedDatabase) {
     if (!sharedDatabase || !Array.isArray(sharedDatabase.categories) || !Array.isArray(sharedDatabase.products)) return null;
 
@@ -750,8 +775,7 @@ function convertSharedDatabaseToLegacy(sharedDatabase) {
         if (normalizeLegacyText(product.hp)) specs.hp = normalizeLegacyText(product.hp);
         specs.type = categoryName;
 
-        (Array.isArray(product.specs) ? [...product.specs] : [])
-            .sort((left, right) => (left.order || 0) - (right.order || 0))
+        getSharedProductSpecRows(product.specs)
             .forEach((spec) => {
                 const label = normalizeLegacyText(spec.label);
                 const value = normalizeLegacyText(spec.value);
@@ -769,7 +793,7 @@ function convertSharedDatabaseToLegacy(sharedDatabase) {
             _sharedImage: normalizeLegacyText(product.image),
             _sharedSpecIds: specIds,
             name: normalizeLegacyText(product.name),
-            tags: Array.isArray(product.tags) ? product.tags.join(' | ') : '',
+            tags: getSharedProductTagsText(product.tags),
             officialPrice: product.officialPrice == null ? '面议' : String(product.officialPrice),
             guidePrice: product.guidePrice == null ? '面议' : String(product.guidePrice),
             isHot: !!product.hot,
@@ -895,9 +919,13 @@ function buildSharedDatabaseFromLegacy() {
 }
 
 let sharedDatabaseSaveTimer = null;
+let sharedDatabaseDirty = false;
 
-function persistSharedDatabaseFromLegacy() {
+function persistSharedDatabaseFromLegacy(force) {
+    if (!force && !sharedDatabaseDirty) return;
+
     const payload = JSON.stringify(buildSharedDatabaseFromLegacy());
+    let wroteRemote = false;
 
     try {
         const xhr = new XMLHttpRequest();
@@ -907,9 +935,14 @@ function persistSharedDatabaseFromLegacy() {
         if (xhr.status < 200 || xhr.status >= 300) {
             throw new Error(xhr.responseText || ('HTTP ' + xhr.status));
         }
+        wroteRemote = true;
+        sharedDatabaseDirty = false;
     } catch (error) {
         console.warn('Failed to persist shared database to /api/database.', error);
+        return;
     }
+
+    if (!wroteRemote) return;
 
     try {
         localStorage.setItem(SHARED_JSON_DB_STORAGE_KEY, payload);
@@ -919,6 +952,7 @@ function persistSharedDatabaseFromLegacy() {
 }
 
 function scheduleSharedDatabaseSave() {
+    sharedDatabaseDirty = true;
     clearTimeout(sharedDatabaseSaveTimer);
     sharedDatabaseSaveTimer = setTimeout(persistSharedDatabaseFromLegacy, 120);
 }
@@ -926,6 +960,8 @@ function scheduleSharedDatabaseSave() {
 function reloadLegacyDatabaseFromSharedStorage() {
     const nextRawDatabase = loadLegacyDatabaseSync();
     if (!nextRawDatabase) return;
+    clearTimeout(sharedDatabaseSaveTimer);
+    sharedDatabaseDirty = false;
     rawDatabase = nextRawDatabase;
     rebuildProductDatabase(nextRawDatabase);
     currentHpFilter = 'all';
@@ -2159,11 +2195,12 @@ window.addEventListener('storage', function(e) {
 });
 
 window.addEventListener('focus', reloadLegacyDatabaseFromSharedStorage);
+window.addEventListener('pageshow', reloadLegacyDatabaseFromSharedStorage);
 document.addEventListener('visibilitychange', function() {
     if (document.visibilityState === 'visible') reloadLegacyDatabaseFromSharedStorage();
 });
 
-window.addEventListener('pagehide', persistSharedDatabaseFromLegacy);
+window.addEventListener('pagehide', function() { persistSharedDatabaseFromLegacy(false); });
 
 const importInput = document.getElementById('import-json-input');
 if(importInput) importInput.addEventListener('change', handleImport);

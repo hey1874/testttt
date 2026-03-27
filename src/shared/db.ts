@@ -68,6 +68,51 @@ function normalizeSpec(raw: unknown, index: number): ProductSpec | null {
   };
 }
 
+function normalizeTagList(raw: unknown): string[] {
+  if (Array.isArray(raw)) {
+    return parseTags(raw.map((item) => normalizeText(item)).filter(Boolean).join(','));
+  }
+
+  if (typeof raw === 'string') {
+    return parseTags(raw);
+  }
+
+  if (raw && typeof raw === 'object') {
+    return parseTags(Object.values(raw as Record<string, unknown>).map((item) => normalizeText(item)).join(','));
+  }
+
+  return [];
+}
+
+function normalizeSpecList(raw: unknown): ProductSpec[] {
+  if (Array.isArray(raw)) {
+    return normalizeSpecs(
+      raw
+        .map((spec, specIndex) => normalizeSpec(spec, specIndex))
+        .filter(Boolean) as ProductSpec[],
+    );
+  }
+
+  if (raw && typeof raw === 'object') {
+    return normalizeSpecs(
+      Object.entries(raw as Record<string, unknown>)
+        .map(([label, value], specIndex) =>
+          normalizeSpec(
+            {
+              label,
+              value: normalizeText(value),
+              order: specIndex + 1,
+            },
+            specIndex,
+          ),
+        )
+        .filter(Boolean) as ProductSpec[],
+    );
+  }
+
+  return [];
+}
+
 function normalizeProduct(raw: unknown, index: number, categories: Category[]): Product {
   const item = raw && typeof raw === 'object' ? (raw as Partial<Product>) : {};
   const categoryId = normalizeText(item.categoryId);
@@ -85,13 +130,9 @@ function normalizeProduct(raw: unknown, index: number, categories: Category[]): 
     officialPrice: typeof item.officialPrice === 'number' && Number.isFinite(item.officialPrice) ? item.officialPrice : null,
     hot: Boolean(item.hot),
     summary: normalizeText(item.summary),
-    tags: Array.isArray(item.tags) ? parseTags(item.tags.join(',')) : [],
+    tags: normalizeTagList(item.tags),
     image: normalizeText(item.image),
-    specs: normalizeSpecs(
-      (Array.isArray(item.specs) ? item.specs : [])
-        .map((spec, specIndex) => normalizeSpec(spec, specIndex))
-        .filter(Boolean) as ProductSpec[],
-    ),
+    specs: normalizeSpecList(item.specs),
     createdAt: normalizeText(item.createdAt) || timestamp,
     updatedAt: timestamp,
   };
