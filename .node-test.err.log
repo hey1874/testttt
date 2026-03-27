@@ -1,0 +1,4 @@
+SyntaxError: Bad control character in string literal in JSON at position 224 (line 11 column 22)
+    at JSON.parse (<anonymous>)
+    at Server.<anonymous> (server.ts:85:37)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)

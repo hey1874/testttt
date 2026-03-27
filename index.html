@@ -1,0 +1,2177 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>空调选购指南数据库 Pro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        ::-webkit-scrollbar { display: none; }
+        body {
+            -ms-overflow-style: none; scrollbar-width: none;
+            background-color: #333; display: flex; justify-content: center; align-items: flex-start; min-height: 100vh; padding: 40px 0; margin: 0;
+            position: relative;
+        }
+        
+        .app-container {
+            width: 390px; height: 844px;
+            background-color: #f4f5f9; position: relative; overflow: hidden;
+            display: flex; flex-direction: column; box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            border-radius: 40px;
+            transform-origin: top center;
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .zoom-controller {
+            position: fixed; top: 20px; left: 20px; background: #222; border: 1px solid #444; border-radius: 16px;
+            padding: 12px; display: flex; flex-direction: column; align-items: center; gap: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); z-index: 9999;
+        }
+        .zoom-btn {
+            width: 36px; height: 36px; background: #444; color: white; border-radius: 50%; display: flex; justify-content: center; align-items: center;
+            font-size: 18px; font-weight: bold; cursor: pointer; transition: all 0.2s; border: none;
+        }
+        .zoom-btn:hover { background: #555; transform: scale(1.05); }
+        .zoom-btn:active { transform: scale(0.95); }
+        
+        .glass-panel { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+        .gradient-text { background: linear-gradient(to right, #4a4a4a, #1a1a1a); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        
+        .sidebar-item { transition: all 0.2s ease; }
+        .sidebar-item.active { background-color: #f4f5f9; font-weight: bold; color: #1a1a1a; }
+        .sidebar-item.active::before { content: ''; position: absolute; left: 0; top: 50%; transform: translateY(-50%); width: 4px; height: 16px; background-color: #3b82f6; border-radius: 0 4px 4px 0; }
+        .sidebar-item.active i { color: #3b82f6; transform: scale(1.1); }
+
+        .form-modal { display: none; position: absolute; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); backdrop-filter: blur(5px); justify-content: center; align-items: center; opacity: 0; transition: opacity 0.3s; }
+        .form-modal.show { display: flex; opacity: 1; }
+        .form-content { background: #fff; width: 90%; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); max-height: 80vh; display: flex; flex-direction: column; overflow: hidden; position: relative;}
+        .form-header { padding: 20px 20px 10px; flex-shrink: 0; border-bottom: 1px solid #eee; text-align: center; font-weight: bold; font-size: 18px; color: #333; }
+        .form-body { padding: 20px; overflow-y: auto; flex: 1; }
+        .form-footer { padding: 15px 20px 20px; border-top: 1px solid #eee; display: flex; gap: 10px; flex-shrink: 0; background: #fff; }
+        
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; font-size: 12px; color: #666; margin-bottom: 6px; }
+        .form-group input, .form-group select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; outline: none; }
+        .form-group input:focus { border-color: #3b82f6; }
+        .form-btn { flex: 1; padding: 12px; border: none; border-radius: 10px; font-size: 14px; font-weight: bold; cursor: pointer; }
+        .btn-cancel { background: #f0f0f0; color: #666; }
+        .btn-submit { background: #3b82f6; color: #fff; }
+
+        .detail-page { width: 100%; height: 100%; background: #fff; display: flex; flex-direction: column; border-radius: 0; }
+        .detail-header { padding: 20px 20px 15px; display: flex; align-items: center; justify-content: space-between; background: #fff; border-bottom: 1px solid #eee; position: sticky; top: 0; z-index: 10; }
+        .detail-scroll-area { flex: 1; overflow-y: auto; }
+
+        .choice-item { padding: 15px; border: 1px solid #eee; border-radius: 10px; margin-bottom: 10px; cursor: pointer; display: flex; align-items: center; gap: 15px; transition: background 0.2s; }
+        .choice-item:active { background: #f4f5f7; }
+        
+        .image-modal { display: none; position: absolute; z-index: 3500; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); backdrop-filter: blur(10px); justify-content: center; align-items: center; opacity: 0; transition: opacity 0.3s; cursor: pointer; }
+        .image-modal.show { display: flex; opacity: 1; }
+        .image-modal img { max-width: 90%; max-height: 80%; border-radius: 16px; transform: scale(0.8); transition: transform 0.3s; cursor: default; }
+        .image-modal.show img { transform: scale(1); }
+
+        .pk-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        .pk-table th, .pk-table td { padding: 10px 5px; text-align: center; border-bottom: 1px solid #eee; font-size: 12px; }
+        .pk-table th { color: #666; font-weight: normal; background: #f9f9f9; width: 25%; }
+        .pk-table td { width: 37.5%; color: #333; }
+        .pk-winner { color: #ff4d4f !important; font-weight: 900 !important; background: #fff1f0; border-radius: 4px; }
+
+        /* ================= EXCEL MANAGER STYLES ================= */
+        .excel-modal-container { position: fixed; inset: 0; z-index: 10000; display: none; flex-direction: column; background: #f9fafb; font-family: ui-sans-serif, system-ui, -apple-system, sans-serif; }
+        .excel-table { border-collapse: separate; border-spacing: 0; white-space: nowrap; }
+        .excel-table th, .excel-table td { border-bottom: 1px solid #e5e7eb; border-right: 1px solid #e5e7eb; padding: 0; min-width: 120px; height: 50px; }
+        .excel-table th { background-color: #f8fafc; position: sticky; top: 0; z-index: 10; font-weight: 600; color: #475569; padding: 8px; border-top: 1px solid #e5e7eb; }
+        .excel-table th:nth-child(1), .excel-table td:nth-child(1) { position: sticky; left: 0; background-color: #f8fafc; z-index: 5; min-width: 140px; width: 140px; text-align: center; }
+        .excel-table th:nth-child(2), .excel-table td:nth-child(2) { position: sticky; left: 140px; background-color: #ffffff; z-index: 5; min-width: 80px; width: 80px; }
+        .excel-table th:nth-child(1) { z-index: 15; background-color: #f8fafc; }
+        .excel-table th:nth-child(2) { z-index: 15; background-color: #f8fafc; left: 140px; }
+        
+        .excel-input { width: 100%; height: 100%; border: none; outline: none; background: transparent; padding: 8px; font-size: 13px; color: #1e293b; box-sizing: border-box; }
+        .excel-input:focus { background: #eff6ff; box-shadow: inset 0 0 0 2px #3b82f6; border-radius: 2px; }
+        
+        .excel-modal-container ::-webkit-scrollbar { width: 10px; height: 10px; display: block; }
+        .excel-modal-container ::-webkit-scrollbar-track { background: #f1f1f1; }
+        .excel-modal-container ::-webkit-scrollbar-thumb { background: #c1c1c1; border-radius: 5px; }
+        .excel-modal-container ::-webkit-scrollbar-thumb:hover { background: #a8a8a8; }
+
+        #toast-container { position: fixed; top: 20px; right: 20px; z-index: 20000; display: flex; flex-direction: column; gap: 10px; pointer-events: none; }
+        .toast { background: #333; color: white; padding: 12px 20px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); font-size: 14px; opacity: 0; transform: translateY(-20px); transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55); display: flex; align-items: center; gap: 8px;}
+        .toast.show { opacity: 1; transform: translateY(0); }
+        .toast.error { background: #ef4444; }
+        .toast.success { background: #10b981; }
+    </style>
+</head>
+<body>
+
+<!-- 全局独立控制面板 -->
+<div class="zoom-controller">
+    <div class="text-[10px] text-gray-400 font-bold mb-1 tracking-widest">画面缩放</div>
+    <button class="zoom-btn" onclick="changeScale(0.1)" title="放大"><i class="fa-solid fa-plus"></i></button>
+    <div id="scale-display" class="text-white text-xs font-mono font-bold w-12 text-center my-1">100%</div>
+    <button class="zoom-btn" onclick="changeScale(-0.1)" title="缩小"><i class="fa-solid fa-minus"></i></button>
+    
+    <button id="btn-live-mode" class="mt-2 text-[10px] bg-red-600 hover:bg-red-500 text-white px-3 py-1.5 rounded-lg transition-colors w-full font-bold border-none cursor-pointer flex justify-center items-center gap-1" onclick="toggleLiveMode()">
+        <i class="fa-solid fa-video"></i> 直播
+    </button>
+    <button class="mt-2 text-[10px] bg-blue-600 hover:bg-blue-500 text-white px-3 py-1.5 rounded-lg transition-colors w-full font-bold border-none cursor-pointer" onclick="resetScale()">复位</button>
+
+    <div class="w-full h-px bg-gray-700 my-2"></div>
+    <div class="text-[10px] text-gray-400 font-bold mb-1 tracking-widest">全局操作</div>
+    
+    <button id="btn-cart" class="relative mt-1 text-[10px] bg-gray-700 hover:bg-gray-600 text-white px-3 py-2 rounded-lg transition-colors w-full font-bold border-none cursor-pointer flex justify-center items-center gap-1" onclick="openModal('cart-modal')">
+        <i class="fa-solid fa-cart-shopping"></i> 清单
+        <div class="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[9px] font-bold w-4 h-4 rounded-full flex items-center justify-center border border-gray-800" id="cart-badge" style="display: none;">0</div>
+    </button>
+    
+    <button id="btn-pk" class="relative mt-2 text-[10px] bg-gray-700 hover:bg-gray-600 text-white px-3 py-2 rounded-lg transition-colors w-full font-bold border-none cursor-pointer flex justify-center items-center gap-1" onclick="triggerPK()">
+        <i class="fa-solid fa-scale-balanced"></i> PK
+        <div class="absolute -top-1.5 -right-1.5 bg-orange-500 text-white text-[9px] font-bold w-4 h-4 rounded-full flex items-center justify-center border border-gray-800" id="pk-badge" style="display: none;">0</div>
+    </button>
+    
+    <button id="btn-add-product" class="mt-2 text-[10px] bg-blue-600 hover:bg-blue-500 text-white px-3 py-2 rounded-lg transition-colors w-full font-bold border-none cursor-pointer flex justify-center items-center gap-1" onclick="openExcelManager()">
+        <i class="fa-solid fa-database"></i> 后台
+    </button>
+</div>
+
+<!-- 手机端主容器 -->
+<div class="app-container" id="app-container">
+    <div class="flex-1 relative flex flex-col overflow-hidden">
+        <div class="relative h-48 bg-gradient-to-br from-blue-100 via-white to-blue-50 pt-8 px-4 rounded-b-3xl shadow-sm flex-shrink-0 z-20">
+            <div class="absolute right-[-20px] top-4 opacity-40"><i class="fa-solid fa-snowflake text-8xl text-blue-200"></i></div>
+            <div class="relative z-10 mt-2">
+                <h1 class="text-3xl font-black italic tracking-wider gradient-text drop-shadow-sm">空调选购指南</h1>
+                <p class="text-[10px] text-gray-500 uppercase tracking-widest mt-1">AIR CONDITIONER GUIDE</p>
+                <div class="flex space-x-3 mt-4 text-[11px] font-medium text-gray-700">
+                    <div class="flex items-center"><i class="fa-regular fa-gem mr-1 text-orange-400"></i>专业选配</div>
+                    <div class="flex items-center"><i class="fa-regular fa-user mr-1 text-orange-400"></i>用户第一</div>
+                    <div class="flex items-center"><i class="fa-solid fa-shield-halved mr-1 text-orange-400"></i>品质保障</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="mx-3 -mt-12 relative z-30 glass-panel rounded-2xl p-4 shadow-md flex justify-between items-center border border-white" onclick="openModal('budget-modal')">
+            <div>
+                <div class="text-xs text-gray-500 flex items-baseline">
+                    <span>剩余预算</span>
+                    <span class="text-2xl font-black text-orange-600 ml-2 transition-colors" id="budget-current">¥38000</span>
+                    <span class="text-[10px] text-gray-400 ml-1" id="budget-max">(总预算: ¥38000)</span>
+                </div>
+                <div class="text-[10px] text-gray-400 mt-1">用户名: <span id="display-username">默认用户</span> <i class="fa-solid fa-pen ml-1 text-gray-300"></i></div>
+            </div>
+            <button class="bg-gradient-to-r from-orange-500 to-red-500 text-white text-xs font-bold py-2 px-5 rounded-full shadow-lg shadow-red-500/30 flex items-center transition-transform active:scale-95" onclick="event.stopPropagation(); openModal('cart-modal')">
+                预算 <i class="fa-solid fa-chevron-right text-[10px] ml-1"></i>
+            </button>
+        </div>
+
+        <div class="mx-3 mt-3 bg-white rounded-2xl p-3 shadow-sm flex-shrink-0 z-20">
+            <div class="flex items-baseline mb-2">
+                <h2 class="text-md font-bold italic text-gray-800">热门推荐</h2>
+                <span class="text-[10px] text-gray-400 ml-2">10项综合维度评定</span>
+            </div>
+            <div class="flex overflow-x-auto space-x-3 pb-2" id="hot-container"></div>
+        </div>
+
+        <div class="flex mt-3 flex-1 overflow-hidden bg-white mx-3 rounded-t-2xl shadow-sm border border-gray-100 z-10 relative">
+            <div class="w-[72px] bg-white flex flex-col border-r border-gray-100 flex-shrink-0 relative z-20 pb-4">
+                <div id="sidebar-categories" class="flex-1 overflow-y-auto pt-2 space-y-2"></div>
+            </div>
+            <div class="flex-1 flex flex-col overflow-hidden relative bg-gray-50/30">
+                <div id="hp-filter-container" class="px-2 py-2.5 flex items-center gap-2 overflow-x-auto whitespace-nowrap border-b border-gray-100 shrink-0 shadow-sm z-20 relative" style="scrollbar-width: none;"></div>
+                <div class="flex-1 px-2 overflow-y-auto relative pb-10 pt-2" id="product-list-scroll">
+                    <div class="flex text-[10px] text-gray-500 bg-gray-700 text-white rounded px-2 py-1.5 mb-2 sticky top-0 z-10 shadow">
+                        <div class="w-8 text-center">图</div>
+                        <div class="flex-1 px-1 text-center">产品/型号</div>
+                        <div class="w-[40px] text-center">官网</div>
+                        <div class="w-[50px] text-center">指导价</div>
+                    </div>
+                    <div id="product-container" class="space-y-2"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== 手机端系列模态框 ===== -->
+    <!-- 详情页 -->
+    <div id="detail-modal" class="form-modal" style="background: #fff; backdrop-filter: none; z-index: 3000;">
+        <div class="form-content detail-page" style="width: 100%; height: 100%; max-height: 100%; border-radius: 0;">
+            <div class="detail-header pt-10 pb-3">
+                <div class="flex items-center">
+                    <button class="back-btn text-gray-500 hover:text-gray-800 text-xl w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 transition-colors" onclick="closeModal('detail-modal')"><i class="fa-solid fa-arrow-left"></i></button>
+                    <div class="font-bold text-lg text-gray-800 ml-3">产品参数</div>
+                </div>
+                <div class="flex items-center">
+                    <button class="bg-red-50 text-red-500 hover:bg-red-100 border border-red-200 px-3 py-1.5 rounded-lg text-xs font-bold mr-2 transition-colors" id="btn-delete-product-detail">删除整机</button>
+                </div>
+            </div>
+            
+            <div class="detail-scroll-area pb-10 bg-gray-50">
+                <div class="p-4 bg-white flex gap-4 items-center shadow-sm">
+                    <img id="detail-img" src="" class="w-24 h-24 rounded-xl object-cover border border-gray-100 shadow-sm shrink-0 cursor-pointer hover:opacity-90" onclick="openPreview(this.src)" title="点击放大查看">
+                    <div class="flex-1 min-w-0">
+                        <div id="detail-name" class="text-xl font-black text-gray-800 mb-1 truncate" title=""></div>
+                        <div id="detail-tags" class="text-xs text-orange-500 font-bold mb-2 truncate"></div>
+                        <div class="flex items-baseline space-x-2">
+                            <span id="detail-guide" class="text-2xl font-black text-red-500"></span>
+                        </div>
+                        <div class="text-xs text-gray-400 mt-1 line-through">官网价 <span id="detail-official"></span></div>
+                    </div>
+                </div>
+                <div class="p-4">
+                    <div id="detail-specs-header" class="flex items-center justify-between mb-3"></div>
+                    <div id="detail-specs-container" class="mt-2"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PK 结果页 -->
+    <div id="pk-result-modal" class="form-modal" style="z-index: 3000;">
+        <div class="form-content" style="width: 95%;">
+            <div class="form-header flex justify-between items-center">
+                <span>参数大 PK</span>
+                <span class="text-xs text-blue-500 font-normal cursor-pointer" onclick="clearPK()">清空列表</span>
+            </div>
+            <div class="form-body p-3">
+                <table class="pk-table">
+                    <tr><th>外形</th><td id="pk-img-1"></td><td id="pk-img-2"></td></tr>
+                    <tr><th>型号</th><td id="pk-name-1" class="font-bold text-[10px]"></td><td id="pk-name-2" class="font-bold text-[10px]"></td></tr>
+                    <tr><th>官网价</th><td id="pk-off-1"></td><td id="pk-off-2"></td></tr>
+                    <tr><th>指导价</th><td id="pk-guide-1"></td><td id="pk-guide-2"></td></tr>
+                    <tr><th>APF值</th><td id="pk-apf-1"></td><td id="pk-apf-2"></td></tr>
+                    <tr><th>循环风量</th><td id="pk-airflow-1"></td><td id="pk-airflow-2"></td></tr>
+                    <tr><th>内/外机重量</th><td id="pk-weight-1"></td><td id="pk-weight-2"></td></tr>
+                    <tr><th>核心卖点</th><td id="pk-tag-1" class="text-[10px] text-gray-500"></td><td id="pk-tag-2" class="text-[10px] text-gray-500"></td></tr>
+                </table>
+            </div>
+            <div class="form-footer"><button class="form-btn btn-submit" onclick="closeModal('pk-result-modal')">关闭</button></div>
+        </div>
+    </div>
+
+    <!-- 购物车 -->
+    <div id="cart-modal" class="form-modal" style="z-index: 3000;">
+        <div class="form-content" style="position: absolute; bottom: 0; width: 100%; border-radius: 24px 24px 0 0; max-height: 70vh;">
+            <div class="form-header text-left flex justify-between items-center">
+                <span>已选空调清单</span>
+                <span class="text-xs text-blue-500 font-normal cursor-pointer" onclick="closeModal('cart-modal')">关闭</span>
+            </div>
+            <div class="form-body p-0" id="cart-items-container"></div>
+            <div class="form-footer bg-gray-50 border-t border-gray-200 flex gap-3">
+                <button class="form-btn bg-white border border-gray-300 text-gray-700 flex-1" onclick="closeModal('cart-modal')">继续选购</button>
+                <button class="form-btn bg-indigo-600 text-white flex-1 flex justify-center items-center gap-1 shadow-md" onclick="generateReceiptImage()">
+                    <i class="fa-solid fa-image"></i> 生成配置单
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 生成图片预览页 -->
+    <div id="receipt-modal" class="form-modal" style="z-index: 3600;">
+        <div class="form-content" style="width: 95%; max-height: 90vh; background: #e2e8f0;">
+            <div class="form-header bg-white flex justify-between items-center rounded-t-2xl shadow-sm z-10 p-4">
+                <span class="text-gray-800 font-bold"><i class="fa-solid fa-file-invoice text-indigo-500 mr-1"></i> 专属配置清单</span>
+                <button class="text-gray-400 hover:text-red-500 transition" onclick="closeModal('receipt-modal')"><i class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+            <div class="form-body p-4 flex flex-col items-center overflow-y-auto w-full">
+                <p class="text-xs text-gray-500 mb-3 font-medium"><i class="fa-solid fa-circle-info text-blue-400 mr-1"></i> 提示：长按图片或右键即可保存分享</p>
+                <img id="receipt-img" src="" class="w-full rounded-xl shadow-lg border border-gray-200">
+            </div>
+            <div class="form-footer bg-white flex justify-center gap-3">
+                <button class="form-btn btn-cancel flex-1" onclick="closeModal('receipt-modal'); openModal('cart-modal')">返回清单</button>
+                <button class="form-btn bg-blue-600 text-white shadow-md flex-1 flex items-center justify-center gap-1" onclick="downloadReceipt()">
+                    <i class="fa-solid fa-download"></i> 立即保存
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 预算设置 -->
+    <div id="budget-modal" class="form-modal" style="z-index: 3000;">
+        <div class="form-content w-4/5">
+            <div class="form-header">修改配置信息</div>
+            <div class="form-body">
+                <div class="form-group"><label>预算上限 (元)</label><input type="number" id="input-max-budget" value="38000"></div>
+                <div class="form-group mb-0"><label>用户名</label><input type="text" id="input-username" value="默认用户" placeholder="请输入用户名"></div>
+            </div>
+            <div class="form-footer">
+                <button class="form-btn btn-cancel" onclick="closeModal('budget-modal')">取消</button>
+                <button class="form-btn btn-submit" id="btn-submit-budget">确认</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 删除确认 -->
+    <div id="delete-db-modal" class="form-modal" style="z-index: 3100;">
+        <div class="form-content w-4/5 text-center">
+            <div class="form-body">
+                <div class="text-red-500 text-lg font-bold mb-2">彻底删除产品</div>
+                <p class="text-xs text-gray-500">是否彻底删除？购物车和推荐也将移除。</p>
+            </div>
+            <div class="form-footer">
+                <button class="form-btn btn-cancel" onclick="closeModal('delete-db-modal')">取消</button>
+                <button class="form-btn text-white bg-red-500" id="btn-confirm-delete-db">确定</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 移除热门 -->
+    <div id="confirm-modal" class="form-modal" style="z-index: 3000;">
+        <div class="form-content w-4/5 text-center">
+            <div class="form-body">
+                <div class="text-gray-800 text-lg font-bold mb-2">移除热门推荐</div>
+                <p class="text-xs text-gray-500">是否从上方热门推荐中移除？</p>
+            </div>
+            <div class="form-footer">
+                <button class="form-btn btn-cancel" onclick="closeModal('confirm-modal')">取消</button>
+                <button class="form-btn text-white bg-orange-500" id="btn-confirm-remove">仅移除热门</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 图片放大 -->
+    <div id="image-modal" class="image-modal" onclick="closeModal('image-modal')">
+        <img id="modal-image" src="" onclick="event.stopPropagation()">
+    </div>
+    
+    <!-- 热门选择类型 -->
+    <div id="hot-choice-modal" class="form-modal" style="z-index: 3000;">
+        <div class="form-content w-4/5">
+            <div class="form-header">添加热门</div>
+            <div class="form-body">
+                <div class="choice-item" onclick="closeModal('hot-choice-modal'); openExcelManager();">
+                    <div class="w-10 h-10 bg-blue-50 text-blue-500 rounded flex justify-center items-center text-xl"><i class="fa-solid fa-pen-to-square"></i></div>
+                    <div><b class="text-sm text-gray-800">去后台添加新机型</b><p class="text-[10px] text-gray-400">进入表格编辑界面录入</p></div>
+                </div>
+                <div class="choice-item mb-0" onclick="openSelectFromDb()">
+                    <div class="w-10 h-10 bg-orange-50 text-orange-500 rounded flex justify-center items-center text-xl"><i class="fa-solid fa-folder-open"></i></div>
+                    <div><b class="text-sm text-gray-800">从现有库中选取</b><p class="text-[10px] text-gray-400">直接选择已有产品</p></div>
+                </div>
+            </div>
+            <div class="form-footer"><button class="form-btn btn-cancel" onclick="closeModal('hot-choice-modal')">取消</button></div>
+        </div>
+    </div>
+    
+    <!-- 数据库选取器 -->
+    <div id="db-select-modal" class="form-modal" style="z-index: 3000;">
+        <div class="form-content">
+            <div class="form-header">从库中选择</div>
+            <div class="form-body" id="db-list" style="padding: 10px;"></div>
+            <div class="form-footer"><button class="form-btn btn-cancel" onclick="closeModal('db-select-modal')">返回</button></div>
+        </div>
+    </div>
+
+    <!-- ======================= 独立全局 Excel 后台层 ======================= -->
+    <div id="excel-manager-modal" class="excel-modal-container">
+        <header class="bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-center shadow-sm shrink-0 z-30 relative">
+            <div class="flex items-center gap-4">
+                <button onclick="closeExcelManager()" class="text-gray-500 hover:text-blue-600 transition bg-gray-100 hover:bg-blue-50 px-3 py-1.5 rounded-lg font-bold flex items-center gap-1">
+                    <i class="fa-solid fa-arrow-left"></i> 返回前台视图
+                </button>
+                <div>
+                    <h1 class="text-xl font-bold text-gray-800 flex items-center gap-2">
+                        <i class="fa-solid fa-table-list text-blue-600"></i> 空调产品数据库管理后台
+                    </h1>
+                    <p class="text-[11px] text-gray-500 mt-1">智能裁剪粘贴：<strong>鼠标悬停在表格的“图片”框上，直接按 <kbd class="bg-gray-100 border border-gray-300 px-1 rounded shadow-sm text-gray-700">Ctrl+V</kbd></strong></p>
+                </div>
+            </div>
+            <div class="flex gap-3">
+                <label class="bg-indigo-50 border border-indigo-200 text-indigo-600 hover:bg-indigo-100 px-4 py-2 rounded-lg cursor-pointer font-medium transition flex items-center gap-2 shadow-sm text-sm">
+                    <i class="fa-solid fa-file-import"></i> 导入 JSON
+                    <input type="file" id="excel-import-btn" accept=".json" class="hidden">
+                </label>
+                <button id="excel-export-btn" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition flex items-center gap-2 shadow-sm text-sm">
+                    <i class="fa-solid fa-file-export"></i> 导出 JSON
+                </button>
+            </div>
+        </header>
+
+        <div class="flex flex-1 overflow-hidden">
+            <div class="w-56 bg-white border-r border-gray-200 flex flex-col pt-4 shrink-0 shadow-[2px_0_8px_rgba(0,0,0,0.02)] z-20 relative">
+                <div class="px-5 mb-3 flex justify-between items-center">
+                    <span class="text-xs font-bold text-gray-400 uppercase tracking-widest">产品分类</span>
+                    <button onclick="excelAddCategory()" class="text-gray-400 hover:text-blue-600 transition" title="新建分类"><i class="fa-solid fa-folder-plus text-sm"></i></button>
+                </div>
+                <ul id="excel-category-list" class="flex-col pb-4 overflow-y-auto text-sm"></ul>
+            </div>
+
+            <div class="flex-1 flex flex-col relative overflow-hidden bg-white">
+                <div class="px-6 py-3 border-b border-gray-100 flex justify-between items-center bg-gray-50 shrink-0">
+                    <h2 id="excel-current-category-title" class="text-lg font-black text-gray-700 tracking-wide">请选择分类</h2>
+                    <div class="flex items-center gap-3">
+                        <span class="text-sm text-gray-500 bg-white px-3 py-1.5 rounded-md border border-gray-200 shadow-sm mr-2">
+                            <i class="fa-solid fa-database text-blue-400 mr-1"></i> 共 <span id="excel-row-count" class="font-bold text-gray-700">0</span> 条记录
+                        </span>
+                        <button onclick="openColumnManager()" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-600 border border-indigo-200 px-3 py-1.5 rounded-md font-medium text-sm transition flex items-center gap-2 shadow-sm">
+                            <i class="fa-solid fa-table-columns"></i> 字段管理
+                        </button>
+                        <button onclick="openBatchPasteModal()" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-600 border border-indigo-200 px-3 py-1.5 rounded-md font-medium text-sm transition flex items-center gap-2 shadow-sm">
+                            <i class="fa-solid fa-paste"></i> 批量粘贴
+                        </button>
+                        <button onclick="excelBatchDelete()" class="bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 px-3 py-1.5 rounded-md font-medium text-sm transition flex items-center gap-2 shadow-sm">
+                            <i class="fa-solid fa-trash-can"></i> 批量删除
+                        </button>
+                        <button onclick="excelAddRow()" class="bg-green-500 hover:bg-green-600 text-white px-4 py-1.5 rounded-md font-medium text-sm transition flex items-center gap-2 shadow-sm">
+                            <i class="fa-solid fa-plus"></i> 新增一行
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="flex-1 overflow-auto w-full relative bg-white" id="excel-table-container">
+                    <table class="excel-table w-full text-left" id="excel-data-table">
+                        <thead><tr id="excel-table-header"></tr></thead>
+                        <tbody id="excel-table-body"></tbody>
+                    </table>
+                    <div id="excel-empty-state" class="absolute inset-0 flex flex-col items-center justify-center bg-white z-20 pointer-events-none hidden">
+                        <div class="w-24 h-24 bg-gray-50 rounded-full flex items-center justify-center mb-4 border border-gray-100">
+                            <i class="fa-solid fa-file-invoice text-4xl text-gray-300"></i>
+                        </div>
+                        <p class="text-gray-500 text-lg font-medium">暂无数据</p>
+                        <p class="text-gray-400 text-sm mt-1">请点击右上角新增一行录入数据</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= 批量粘贴弹窗 ================= -->
+    <div id="batch-paste-modal" class="fixed inset-0 bg-black/60 z-[15000] hidden flex items-center justify-center backdrop-blur-sm">
+        <div class="bg-white rounded-xl shadow-2xl w-[1000px] max-w-[95vw] flex flex-col overflow-hidden">
+            <div class="px-5 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+                <h3 class="font-bold text-gray-800 flex items-center gap-2"><i class="fa-solid fa-clipboard-list text-indigo-500"></i> 从 Excel 批量粘贴录入</h3>
+                <button onclick="closeBatchPasteModal()" class="text-gray-400 hover:text-red-500 transition w-8 h-8 rounded-full hover:bg-red-50 flex items-center justify-center"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <div class="p-5 flex gap-4 h-[60vh]">
+                <div class="w-1/3 flex flex-col gap-3 border-r border-gray-100 pr-4">
+                    <div class="bg-indigo-50 border border-indigo-100 text-indigo-800 p-3 rounded-lg text-sm leading-relaxed">
+                        <p class="font-bold mb-1"><i class="fa-solid fa-circle-info mr-1"></i> 使用说明：</p>
+                        <p>1. 请在 Excel 中选中多行数据并复制（<kbd class="bg-white border border-gray-300 px-1 rounded shadow-sm text-gray-700">Ctrl+C</kbd>）。</p>
+                        <p>2. 在下方文本框内直接粘贴（<kbd class="bg-white border border-gray-300 px-1 rounded shadow-sm text-gray-700">Ctrl+V</kbd>）。</p>
+                        <p class="text-red-600 mt-1 font-medium">注意：当前列顺序如下：<br>
+                        <span id="batch-paste-order-hint" class="font-mono text-xs bg-white px-2 py-1 rounded border border-red-200 block mt-1 overflow-x-auto whitespace-nowrap text-gray-600"></span></p>
+                    </div>
+                    <textarea id="batch-paste-input" class="w-full h-64 border border-gray-300 rounded-lg p-3 text-sm text-gray-700 outline-none focus:ring-2 focus:ring-indigo-100 resize-none shadow-inner whitespace-pre" placeholder="在此粘贴数据... (制表符分隔)" oninput="debouncePreview()"></textarea>
+                </div>
+                <div class="w-2/3 flex flex-col border border-gray-200 rounded-lg bg-gray-50 overflow-hidden">
+                    <div class="bg-gray-100 px-3 py-2 border-b border-gray-200 text-sm font-bold text-gray-600 flex justify-between">
+                        <span><i class="fa-solid fa-eye"></i> 预览</span>
+                        <span id="preview-count" class="text-indigo-600 font-bold">0 条记录</span>
+                    </div>
+                    <div class="flex-1 overflow-auto bg-white relative">
+                        <table class="w-full text-left text-xs whitespace-nowrap">
+                            <thead class="bg-gray-50 sticky top-0 shadow-sm border-b border-gray-200 z-10"><tr id="preview-table-header"></tr></thead>
+                            <tbody id="preview-table-body" class="divide-y divide-gray-100"></tbody>
+                        </table>
+                        <div id="preview-empty" class="absolute inset-0 flex flex-col items-center justify-center text-gray-400">
+                            <i class="fa-solid fa-inbox text-4xl mb-2 text-gray-200"></i>
+                            <p>等待数据输入并解析...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="px-5 py-3 border-t border-gray-100 bg-gray-50 flex justify-end gap-3 shrink-0">
+                <button onclick="closeBatchPasteModal()" class="px-5 py-2 bg-white border border-gray-300 rounded-lg text-sm text-gray-700 font-medium hover:bg-gray-50">取消</button>
+                <button onclick="processBatchPaste()" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 rounded-lg text-sm text-white font-medium shadow-md transition">确认导入多行</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= 图片裁剪调节模态框 ================= -->
+    <div id="crop-modal" class="fixed inset-0 bg-black/80 z-[16000] hidden flex flex-col items-center justify-center backdrop-blur-sm">
+        <div class="bg-white rounded-2xl shadow-2xl w-[350px] max-w-[95vw] flex flex-col overflow-hidden">
+            <div class="px-4 py-3 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+                <h3 class="font-bold text-gray-800 text-sm"><i class="fa-solid fa-crop-simple text-blue-500"></i> 移动与缩放 (固定 1:1)</h3>
+                <button onclick="closeCropModal()" class="text-gray-400 hover:text-red-500"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <div class="p-4 flex flex-col items-center bg-gray-100">
+                <div id="crop-container" class="relative w-[280px] h-[280px] overflow-hidden rounded-lg shadow-inner bg-gray-200 cursor-grab" style="touch-action: none;">
+                    <img id="crop-image" src="" class="absolute origin-top-left max-w-none pointer-events-none">
+                </div>
+                <div class="w-full mt-4 flex items-center gap-3 px-2">
+                    <i class="fa-solid fa-image text-gray-400 text-xs"></i>
+                    <input type="range" id="crop-zoom" min="0.1" max="3" step="0.01" value="1" class="flex-1 accent-blue-500">
+                    <i class="fa-solid fa-image text-gray-400 text-lg"></i>
+                </div>
+            </div>
+            <div class="px-4 py-3 border-t border-gray-100 bg-white flex justify-end gap-3 shrink-0">
+                <button onclick="closeCropModal()" class="px-4 py-2 bg-gray-100 rounded-lg text-sm text-gray-700 font-medium">取消</button>
+                <button onclick="confirmCrop()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-sm text-white font-medium shadow-md">确定裁剪</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= 字段模板管理弹窗 ================= -->
+    <div id="column-modal" class="fixed inset-0 bg-black/50 z-[15000] hidden flex items-center justify-center backdrop-blur-sm">
+        <div class="bg-white rounded-xl shadow-2xl w-[500px] max-w-[95vw] max-h-[85vh] flex flex-col overflow-hidden">
+            <div class="px-5 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+                <h3 class="font-bold text-gray-800 flex items-center gap-2"><i class="fa-solid fa-table-columns text-indigo-500"></i> 收集字段管理 & 自定义模板</h3>
+                <button onclick="closeColumnManager()" class="text-gray-400 hover:text-red-500 transition w-8 h-8 rounded-full hover:bg-red-50 flex items-center justify-center"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <div class="p-4 bg-white border-b border-gray-100">
+                <div class="flex justify-between items-center mb-3">
+                    <span class="text-xs font-bold text-gray-400 uppercase tracking-widest">一键应用字段模板</span>
+                    <button onclick="saveCurrentAsTemplate()" class="text-indigo-600 hover:text-indigo-800 text-xs font-medium flex items-center gap-1 transition-colors"><i class="fa-solid fa-plus-circle"></i> 将当前存为模板</button>
+                </div>
+                <div id="column-template-container" class="flex gap-2 flex-wrap text-sm"></div>
+            </div>
+            <div class="flex-1 overflow-y-auto p-2 bg-gray-50/50" id="column-list-container">
+                <div class="px-3 pt-2 pb-1 text-xs font-bold text-gray-400 uppercase tracking-widest">当前启用字段 (<span id="active-column-count">0</span>) - 拖拽排序</div>
+                <ul id="column-manager-list" class="divide-y divide-gray-100 bg-white rounded-lg border border-gray-100 mx-2 mt-1 mb-2 shadow-sm text-sm"></ul>
+            </div>
+            <div class="p-4 bg-white border-t border-gray-100 flex gap-2 items-center">
+                <input type="text" id="new-column-name" placeholder="新字段名称 (如: 保修期)" class="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500">
+                <button onclick="addCustomColumn()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition shadow-sm whitespace-nowrap"><i class="fa-solid fa-plus"></i> 添加</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= 本地文本提取 AI 弹窗 ================= -->
+    <div id="text-ai-modal" class="fixed inset-0 bg-black/60 z-[15000] hidden flex items-center justify-center backdrop-blur-sm">
+        <div class="bg-white rounded-xl shadow-2xl w-[600px] max-w-[95vw] flex flex-col overflow-hidden">
+            <div class="px-5 py-4 border-b border-gray-100 flex justify-between items-center bg-gradient-to-r from-teal-50 to-white">
+                <h3 class="font-bold text-teal-800 flex items-center gap-2 text-lg"><i class="fa-solid fa-paste"></i> 单条文本智能提取</h3>
+                <button onclick="closeTextAiModal()" class="text-gray-400 hover:text-red-500 transition w-8 h-8 rounded-full hover:bg-red-50 flex items-center justify-center"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <div class="p-5">
+                <p class="text-sm text-gray-600 mb-3"><i class="fa-solid fa-circle-info text-teal-500 mr-1"></i>请粘贴单款产品的参数文本，本地正则引擎将自动填入表格：</p>
+                <textarea id="ai-text-input" class="w-full h-48 border border-gray-300 rounded-lg p-3 text-sm text-gray-700 outline-none focus:ring-2 focus:ring-teal-100 resize-none shadow-inner" placeholder="品牌：格力&#10;型号：KFR-35GW..."></textarea>
+            </div>
+            <div class="px-5 py-3 border-t border-gray-100 bg-gray-50 flex justify-end gap-3 shrink-0">
+                <button onclick="closeTextAiModal()" class="px-5 py-2 bg-white border border-gray-300 rounded-lg text-sm text-gray-700">取消</button>
+                <button onclick="startTextAI()" class="px-5 py-2 bg-teal-600 rounded-lg text-sm text-white shadow-md"><i class="fa-solid fa-bolt"></i> 开始提取</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 提取结果预览 -->
+    <div id="parse-preview-modal" class="fixed inset-0 bg-black/60 z-[15000] hidden flex items-center justify-center backdrop-blur-sm">
+        <div class="bg-white rounded-xl shadow-2xl w-[600px] max-w-[95vw] max-h-[90vh] flex flex-col overflow-hidden">
+            <div class="px-5 py-4 border-b border-gray-100 flex justify-between items-center bg-gradient-to-r from-teal-50 to-white">
+                <h3 class="font-bold text-teal-800 flex items-center gap-2 text-lg"><i class="fa-solid fa-bolt"></i> 智能提取结果</h3>
+                <button onclick="closeParseModal()" class="text-gray-400 hover:text-red-500 w-8 h-8 rounded-full hover:bg-red-50 flex items-center justify-center"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <div class="p-0 flex-1 overflow-hidden relative flex flex-col">
+                <div id="parse-loading" class="absolute inset-0 bg-white z-10 flex flex-col items-center justify-center hidden">
+                    <div class="relative w-16 h-16 mb-4"><div class="absolute inset-0 border-4 border-teal-100 rounded-full"></div><div class="absolute inset-0 border-4 border-teal-500 rounded-full border-t-transparent animate-spin"></div></div>
+                    <p class="text-gray-700 font-bold text-lg mb-1">正在提取参数...</p>
+                </div>
+                <div id="parse-result-area" class="flex-1 overflow-y-auto p-5 bg-gray-50 flex flex-col">
+                    <div class="mb-3 flex items-center justify-between shrink-0 bg-white p-2 rounded-lg border border-gray-200 shadow-sm">
+                        <div class="text-xs font-bold text-gray-600 flex items-center gap-2 pl-2"><i class="fa-solid fa-filter text-indigo-400"></i> 参数模板：</div>
+                        <div class="flex gap-1.5 flex-wrap text-sm" id="parse-template-container"></div>
+                    </div>
+                    <div class="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden flex-1 overflow-y-auto">
+                        <table class="w-full text-sm text-left">
+                            <thead class="bg-gray-50 text-gray-600 border-b border-gray-200 sticky top-0 z-10"><tr><th class="py-2 px-4 font-medium w-1/3">参数名称</th><th class="py-2 px-4 font-medium">识别值 (点击修改)</th><th class="py-2 px-4 font-medium w-16 text-center">操作</th></tr></thead>
+                            <tbody id="parse-preview-list" class="divide-y divide-gray-100"></tbody>
+                            <tfoot class="bg-teal-50/30 border-t border-teal-100 sticky bottom-0 z-10">
+                                <tr>
+                                    <td class="py-2 px-4 border-r border-teal-50"><select id="parse-add-key" class="w-full border border-gray-300 rounded px-2 py-1.5 text-sm outline-none bg-white"><option value="">+ 选择参数...</option></select></td>
+                                    <td class="py-2 px-4"><input id="parse-add-val" type="text" class="w-full border border-gray-300 rounded px-2 py-1.5 text-sm outline-none" placeholder="输入值"></td>
+                                    <td class="py-2 px-4 text-center"><button onclick="addParseField()" class="text-teal-600 hover:text-white bg-teal-100 hover:bg-teal-500 w-8 h-8 rounded-full transition"><i class="fa-solid fa-plus"></i></button></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="px-5 py-3 border-t border-gray-100 bg-white flex justify-end gap-3 shrink-0">
+                <button onclick="closeParseModal()" class="px-5 py-2 bg-gray-100 rounded-lg text-sm text-gray-700">取消</button>
+                <button onclick="applyParseData()" class="px-5 py-2 bg-teal-500 rounded-lg text-sm text-white shadow-md hover:-translate-y-0.5 transition"><i class="fa-solid fa-check-double"></i> 应用到表格</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// =============== 1. 全局状态初始化 ===============
+let currentScale = 1.0;
+const MAX_SCALE = 1.5;
+const MIN_SCALE = 0.4;
+let isLiveMode = false;
+let isDetailEditMode = false;
+
+let currentCategory = '壁挂式'; 
+let currentHpFilter = 'all';
+let maxBudget = 38000; 
+let cart = []; 
+let pkList = []; 
+let editingProduct = null;
+let excelCurrentCategory = "壁挂式"; 
+let hoveredImageIndex = -1;
+let currentUploadIndex = -1;
+
+let rawDatabase = {
+    "壁挂式": [
+        { name: "华凌/神机N8HE1 1.5匹", tags: "神机 | 电子膨胀阀", officialPrice: "2399", guidePrice: "2099", isHot: true, specs: { brand: "华凌", modelId: "KFR-35GW/N8HE1", applicableArea: "15-20㎡", coolingPower: "810W", airflow: "710m³/h", inMaxNoise: "41dB(A)", outMaxNoise: "51dB(A)", sweep: "上下/左右扫风", heatingPower: "1250W", heatingCapacity: "5000W", coolingCapacity: "3500W", inNoiseQuiet: "18dB(A)", refrigerant: "R32", voltage: "220V/50Hz", outDimensions: "802x555x350mm", inDimensions: "880x295x195mm", outWeight: "31kg", inWeight: "10.5kg", apf: "5.27", inverter: "变频", hp: "1.5匹", controlMode: "APP/遥控", type: "壁挂式", energyLevel: "一级能效", coolHeatType: "冷暖", features: "一键防直吹 自清洁，包含：室内机*1，室外机*1，遥控器*1" } },
+        { name: "格力/云佳 1.5匹", tags: "销量冠军 | 稳定耐用", officialPrice: "3199", guidePrice: "2899", isHot: true, specs: { brand: "格力", modelId: "KFR-35GW/NhGc1B", applicableArea: "16-20㎡", coolingPower: "810W", airflow: "640m³/h", apf: "5.28", inverter: "变频", hp: "1.5匹", controlMode: "遥控", type: "壁挂式", energyLevel: "一级能效", coolHeatType: "冷暖" } }
+    ],
+    "立柜式": [
+        { name: "美的/锐云 3匹", tags: "大风量 | 广角送风", officialPrice: "6499", guidePrice: "5899", isHot: true, specs: { brand: "美的", modelId: "KFR-72LW/N8XHA1", applicableArea: "30-40㎡", coolingPower: "2100W", airflow: "1300m³/h", apf: "4.42", inverter: "变频", hp: "3匹", type: "立柜式", energyLevel: "一级能效", coolHeatType: "冷暖" } }
+    ],
+    "风管机": [], "中央空调": []
+};
+
+const SHARED_JSON_DB_STORAGE_KEY = 'air-guide-json-db';
+const LEGACY_SPEC_LABEL_TO_KEY = {
+    brand: 'brand',
+    modelId: 'modelId',
+    hp: 'hp',
+    type: 'type',
+    productId: 'productId',
+    '品牌': 'brand',
+    '商品编号': 'productId',
+    '型号': 'modelId',
+    '适用面积': 'applicableArea',
+    '制冷功率': 'coolingPower',
+    '循环风量': 'airflow',
+    '内机最大噪音': 'inMaxNoise',
+    '外机最大噪音': 'outMaxNoise',
+    '扫风方式': 'sweep',
+    '制热功率': 'heatingPower',
+    '制热量': 'heatingCapacity',
+    '制冷量': 'coolingCapacity',
+    '内机静音': 'inNoiseQuiet',
+    '制冷剂': 'refrigerant',
+    '电压/频率': 'voltage',
+    '外机尺寸': 'outDimensions',
+    '内机尺寸': 'inDimensions',
+    '外机净重': 'outWeight',
+    '内机净重': 'inWeight',
+    '能效比(APF)': 'apf',
+    '变频/定频': 'inverter',
+    '功能': 'features',
+    '匹数': 'hp',
+    '控制方式': 'controlMode',
+    '类型': 'type',
+    '能效等级': 'energyLevel',
+    '冷暖类型': 'coolHeatType'
+};
+const LEGACY_PRIMARY_SPEC_KEYS = { brand: true, modelId: true, hp: true, type: true };
+let sharedCategoryRegistry = {};
+
+function createSharedId(prefix) {
+    return prefix + '_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+}
+
+function normalizeLegacyText(value) {
+    return typeof value === 'string' ? value.trim() : '';
+}
+
+function parseLegacyPrice(value) {
+    const cleaned = String(value == null ? '' : value).replace(/[^\d.]/g, '');
+    if (!cleaned) return null;
+    const parsed = Number(cleaned);
+    return Number.isFinite(parsed) ? parsed : null;
+}
+
+function splitLegacyTags(value) {
+    return String(value == null ? '' : value)
+        .split(/[|,，\n]/)
+        .map(item => item.trim())
+        .filter(Boolean);
+}
+
+function getLegacySpecKey(label) {
+    return LEGACY_SPEC_LABEL_TO_KEY[label] || label;
+}
+
+function getLegacySpecLabel(key) {
+    for (const label in LEGACY_SPEC_LABEL_TO_KEY) {
+        if (LEGACY_SPEC_LABEL_TO_KEY[label] === key && label !== key) return label;
+    }
+    return key;
+}
+
+function loadSharedDatabaseSync() {
+    try {
+        const xhr = new XMLHttpRequest();
+        xhr.open('GET', '/api/database', false);
+        xhr.send(null);
+        if (xhr.status >= 200 && xhr.status < 300 && xhr.responseText) {
+            try { localStorage.setItem(SHARED_JSON_DB_STORAGE_KEY, xhr.responseText); } catch (storageError) {}
+            return JSON.parse(xhr.responseText);
+        }
+    } catch (error) {
+        console.warn('Failed to load /api/database.', error);
+    }
+
+    try {
+        const saved = localStorage.getItem(SHARED_JSON_DB_STORAGE_KEY);
+        if (saved) return JSON.parse(saved);
+    } catch (error) {
+        console.warn('Failed to parse local shared database.', error);
+    }
+
+    try {
+        const xhr = new XMLHttpRequest();
+        xhr.open('GET', './data/database.json', false);
+        xhr.send(null);
+        if (xhr.status >= 200 && xhr.status < 300 && xhr.responseText) {
+            return JSON.parse(xhr.responseText);
+        }
+    } catch (error) {
+        console.warn('Failed to load ./data/database.json.', error);
+    }
+
+    return null;
+}
+
+function convertSharedDatabaseToLegacy(sharedDatabase) {
+    if (!sharedDatabase || !Array.isArray(sharedDatabase.categories) || !Array.isArray(sharedDatabase.products)) return null;
+
+    const categories = [...sharedDatabase.categories].sort((left, right) => (left.order || 0) - (right.order || 0));
+    const categoryById = {};
+    const legacyDatabase = {};
+    sharedCategoryRegistry = {};
+
+    categories.forEach((category, index) => {
+        const categoryName = normalizeLegacyText(category.name) || ('Category ' + (index + 1));
+        categoryById[category.id] = category;
+        sharedCategoryRegistry[categoryName] = {
+            id: category.id,
+            name: categoryName,
+            code: normalizeLegacyText(category.code) || ('C' + (index + 1)),
+            description: normalizeLegacyText(category.description),
+            accent: normalizeLegacyText(category.accent) || '#2563eb',
+            order: Number.isFinite(category.order) ? category.order : index + 1,
+            createdAt: normalizeLegacyText(category.createdAt),
+            updatedAt: normalizeLegacyText(category.updatedAt)
+        };
+        legacyDatabase[categoryName] = [];
+    });
+
+    sharedDatabase.products.forEach((product) => {
+        const categoryMeta = categoryById[product.categoryId];
+        const categoryName = categoryMeta ? categoryMeta.name : (normalizeLegacyText(product.categoryId) || 'Uncategorized');
+        if (!legacyDatabase[categoryName]) legacyDatabase[categoryName] = [];
+
+        const specs = {};
+        const specIds = {};
+        if (normalizeLegacyText(product.brand)) specs.brand = normalizeLegacyText(product.brand);
+        if (normalizeLegacyText(product.modelId)) specs.modelId = normalizeLegacyText(product.modelId);
+        if (normalizeLegacyText(product.hp)) specs.hp = normalizeLegacyText(product.hp);
+        specs.type = categoryName;
+
+        (Array.isArray(product.specs) ? [...product.specs] : [])
+            .sort((left, right) => (left.order || 0) - (right.order || 0))
+            .forEach((spec) => {
+                const label = normalizeLegacyText(spec.label);
+                const value = normalizeLegacyText(spec.value);
+                if (!label || !value) return;
+                const key = getLegacySpecKey(label);
+                specs[key] = value;
+                specIds[key] = normalizeLegacyText(spec.id);
+            });
+
+        legacyDatabase[categoryName].push({
+            _sharedId: normalizeLegacyText(product.id),
+            _sharedCategoryId: normalizeLegacyText(product.categoryId),
+            _sharedCreatedAt: normalizeLegacyText(product.createdAt),
+            _sharedUpdatedAt: normalizeLegacyText(product.updatedAt),
+            _sharedImage: normalizeLegacyText(product.image),
+            _sharedSpecIds: specIds,
+            name: normalizeLegacyText(product.name),
+            tags: Array.isArray(product.tags) ? product.tags.join(' | ') : '',
+            officialPrice: product.officialPrice == null ? '面议' : String(product.officialPrice),
+            guidePrice: product.guidePrice == null ? '面议' : String(product.guidePrice),
+            isHot: !!product.hot,
+            img: normalizeLegacyText(product.image),
+            specs: specs
+        });
+    });
+
+    return Object.keys(legacyDatabase).length > 0 ? legacyDatabase : null;
+}
+
+function loadLegacyDatabaseSync() {
+    return convertSharedDatabaseToLegacy(loadSharedDatabaseSync());
+}
+
+rawDatabase = loadLegacyDatabaseSync() || rawDatabase;
+
+function generateDynamicImage(name, category) {
+    let typePath = '';
+    if (category === '壁挂式') typePath = '<rect x="30" y="60" width="140" height="45" rx="10" fill="#ffffff" stroke="#3b82f6" stroke-width="4"/><line x1="50" y1="90" x2="150" y2="90" stroke="#3b82f6" stroke-width="2"/>';
+    else if (category === '立柜式') typePath = '<rect x="65" y="20" width="70" height="150" rx="10" fill="#ffffff" stroke="#3b82f6" stroke-width="4"/><rect x="80" y="40" width="40" height="30" rx="5" fill="#eff6ff"/>';
+    else if (category === '风管机') typePath = '<rect x="25" y="75" width="150" height="35" fill="#ffffff" stroke="#3b82f6" stroke-width="4"/>';
+    else typePath = '<rect x="50" y="50" width="100" height="100" fill="#ffffff" stroke="#3b82f6" stroke-width="4" rx="10"/><circle cx="100" cy="100" r="18" fill="#ffffff" stroke="#3b82f6" stroke-width="3"/>';
+    const shortBrand = name.split('/')[0].split(' ')[0] || "空调";
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200" fill="#f8f9fa"><rect width="200" height="200" rx="20"/>${typePath}<text x="100" y="188" font-family="sans-serif" font-size="16" font-weight="bold" fill="#333333" text-anchor="middle">${shortBrand}</text></svg>`;
+    return 'data:image/svg+xml;utf8,' + encodeURIComponent(svg);
+}
+
+let productDatabase = {};
+Object.keys(rawDatabase).forEach(category => { productDatabase[category] = rawDatabase[category].map(p => ({ ...p, img: p.img || generateDynamicImage(p.name, category) })); });
+
+function getLegacyCategoryKeys() {
+    return Object.keys(productDatabase).filter(key => key !== '__columns__' && key !== '__templates__');
+}
+
+function syncLegacyCategoryCursor() {
+    const categoryKeys = getLegacyCategoryKeys();
+    if (categoryKeys.length === 0) return;
+    if (!categoryKeys.includes(currentCategory)) currentCategory = categoryKeys[0];
+    if (!categoryKeys.includes(excelCurrentCategory)) excelCurrentCategory = categoryKeys[0];
+}
+
+function rebuildProductDatabase(nextRawDatabase) {
+    const nextProductDatabase = {};
+    Object.keys(nextRawDatabase || {}).forEach(category => {
+        nextProductDatabase[category] = (nextRawDatabase[category] || []).map(p => ({ ...p, img: p.img || generateDynamicImage(p.name, category) }));
+    });
+    Object.keys(productDatabase).forEach(key => delete productDatabase[key]);
+    Object.assign(productDatabase, nextProductDatabase);
+    syncLegacyCategoryCursor();
+}
+
+function buildSharedDatabaseFromLegacy() {
+    const now = new Date().toISOString();
+    const categoryKeys = getLegacyCategoryKeys();
+    const categories = categoryKeys.map((categoryName, index) => {
+        const previous = sharedCategoryRegistry[categoryName] || {};
+        return {
+            id: previous.id || createSharedId('category'),
+            name: categoryName,
+            code: previous.code || ('C' + (index + 1)),
+            description: previous.description || '',
+            accent: previous.accent || '#2563eb',
+            order: Number.isFinite(previous.order) ? previous.order : index + 1,
+            createdAt: previous.createdAt || now,
+            updatedAt: now
+        };
+    });
+
+    sharedCategoryRegistry = {};
+    categories.forEach(category => { sharedCategoryRegistry[category.name] = { ...category }; });
+
+    const products = [];
+    categoryKeys.forEach((categoryName) => {
+        const categoryMeta = sharedCategoryRegistry[categoryName];
+        (productDatabase[categoryName] || []).forEach((product, index) => {
+            const specs = product.specs || {};
+            const specIds = product._sharedSpecIds || {};
+            const specRows = [];
+
+            Object.keys(specs).forEach((key) => {
+                const value = normalizeLegacyText(specs[key]);
+                if (!value || LEGACY_PRIMARY_SPEC_KEYS[key]) return;
+                specRows.push({
+                    id: specIds[key] || createSharedId('spec'),
+                    label: getLegacySpecLabel(key),
+                    value: value,
+                    order: specRows.length + 1
+                });
+            });
+
+            const imageValue = normalizeLegacyText(product._sharedImage) || (/^data:image\/svg\+xml/i.test(String(product.img || '')) ? '' : normalizeLegacyText(product.img));
+            products.push({
+                id: normalizeLegacyText(product._sharedId) || createSharedId('product'),
+                categoryId: categoryMeta.id,
+                name: normalizeLegacyText(product.name) || ('Product ' + (index + 1)),
+                brand: normalizeLegacyText(specs.brand),
+                modelId: normalizeLegacyText(specs.modelId),
+                hp: normalizeLegacyText(specs.hp),
+                guidePrice: parseLegacyPrice(product.guidePrice),
+                officialPrice: parseLegacyPrice(product.officialPrice),
+                hot: !!product.isHot,
+                summary: splitLegacyTags(product.tags).join('，'),
+                tags: splitLegacyTags(product.tags),
+                image: imageValue,
+                specs: specRows,
+                createdAt: normalizeLegacyText(product._sharedCreatedAt) || now,
+                updatedAt: now
+            });
+        });
+    });
+
+    return {
+        meta: {
+            version: 1,
+            name: 'Air Guide',
+            storageMode: 'seed-json + localStorage',
+            updatedAt: now
+        },
+        categories: categories,
+        products: products
+    };
+}
+
+let sharedDatabaseSaveTimer = null;
+
+function persistSharedDatabaseFromLegacy() {
+    const payload = JSON.stringify(buildSharedDatabaseFromLegacy());
+
+    try {
+        const xhr = new XMLHttpRequest();
+        xhr.open('PUT', '/api/database', false);
+        xhr.setRequestHeader('Content-Type', 'application/json; charset=utf-8');
+        xhr.send(payload);
+        if (xhr.status < 200 || xhr.status >= 300) {
+            throw new Error(xhr.responseText || ('HTTP ' + xhr.status));
+        }
+    } catch (error) {
+        console.warn('Failed to persist shared database to /api/database.', error);
+    }
+
+    try {
+        localStorage.setItem(SHARED_JSON_DB_STORAGE_KEY, payload);
+    } catch (error) {
+        console.warn('Failed to persist shared database from legacy page.', error);
+    }
+}
+
+function scheduleSharedDatabaseSave() {
+    clearTimeout(sharedDatabaseSaveTimer);
+    sharedDatabaseSaveTimer = setTimeout(persistSharedDatabaseFromLegacy, 120);
+}
+
+function reloadLegacyDatabaseFromSharedStorage() {
+    const nextRawDatabase = loadLegacyDatabaseSync();
+    if (!nextRawDatabase) return;
+    rawDatabase = nextRawDatabase;
+    rebuildProductDatabase(nextRawDatabase);
+    currentHpFilter = 'all';
+    if (typeof renderSidebar === 'function') renderSidebar();
+    if (typeof renderHpFilters === 'function') renderHpFilters(currentCategory);
+    if (typeof renderProducts === 'function') renderProducts(currentCategory);
+    if (typeof renderHotProducts === 'function') renderHotProducts(currentCategory);
+    if (typeof excelRenderSidebar === 'function') excelRenderSidebar();
+    if (typeof excelRenderTable === 'function') excelRenderTable();
+}
+
+syncLegacyCategoryCursor();
+
+// =============== 2. 通用交互与缩放逻辑 ===============
+function changeScale(delta) { currentScale = Math.min(Math.max(currentScale + delta, MIN_SCALE), MAX_SCALE); applyScale(); }
+function resetScale() { currentScale = 1.0; applyScale(); }
+function toggleLiveMode() { isLiveMode = !isLiveMode; currentScale = isLiveMode ? 0.85 : 1.0; applyScale(); }
+function applyScale() {
+    const container = document.getElementById('app-container'), display = document.getElementById('scale-display'), liveBtn = document.getElementById('btn-live-mode');
+    isLiveMode = Math.abs(currentScale - 0.85) < 0.01;
+    if (isLiveMode) {
+        document.body.style.overflow = 'hidden';
+        container.style.position = 'fixed'; container.style.top = '40px'; container.style.left = '50%'; container.style.marginLeft = '-195px';
+        if (liveBtn) { liveBtn.classList.remove('bg-red-600', 'hover:bg-red-500'); liveBtn.classList.add('bg-green-600', 'hover:bg-green-500'); liveBtn.innerHTML = '<i class="fa-solid fa-video-slash"></i> 退出'; }
+    } else {
+        document.body.style.overflow = '';
+        container.style.position = 'relative'; container.style.top = 'auto'; container.style.left = 'auto'; container.style.marginLeft = '0';
+        if (liveBtn) { liveBtn.classList.remove('bg-green-600', 'hover:bg-green-500'); liveBtn.classList.add('bg-red-600', 'hover:bg-red-500'); liveBtn.innerHTML = '<i class="fa-solid fa-video"></i> 直播'; }
+    }
+    container.style.transform = `scale(${currentScale})`; display.innerText = Math.round(currentScale * 100) + '%';
+}
+
+function openModal(id) { const el = document.getElementById(id); if(el) { el.style.display = 'flex'; setTimeout(() => el.classList.add('show'), 10); } }
+function closeModal(id) { const el = document.getElementById(id); if(el) { el.classList.remove('show'); setTimeout(() => el.style.display = 'none', 300); } }
+function openPreview(src) { const img = document.getElementById('modal-image'); if(img) { img.src = src; openModal('image-modal'); } }
+function findProductByName(name) { 
+    for(const cat in productDatabase) {
+        const found = productDatabase[cat].find(x => x.name === name);
+        if (found) return found;
+    }
+    return null;
+}
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' || e.keyCode === 27) {
+        const openModals = Array.from(document.querySelectorAll('.form-modal.show, .image-modal.show, #crop-modal:not(.hidden), #batch-paste-modal:not(.hidden), #receipt-modal:not(.hidden), .excel-modal-container[style*="display: flex"]'));
+        if (openModals.length > 0) {
+            openModals.sort((a, b) => (parseInt(window.getComputedStyle(b).zIndex) || 0) - (parseInt(window.getComputedStyle(a).zIndex) || 0));
+            if(openModals[0].id === 'crop-modal') { closeCropModal(); }
+            else if(openModals[0].id === 'batch-paste-modal') { closeBatchPasteModal(); }
+            else if(openModals[0].classList.contains('form-modal') || openModals[0].classList.contains('image-modal')) { closeModal(openModals[0].id); }
+            else { openModals[0].style.display = 'none'; } 
+        }
+    }
+});
+
+// =============== 3. 前台 UI 渲染 (分类、热门、列表、筛选) ===============
+const categoryIcons = { '壁挂式': 'fa-wind', '立柜式': 'fa-fan', '风管机': 'fa-bars-staggered', '中央空调': 'fa-snowflake' };
+
+function renderSidebar() {
+    const sidebar = document.getElementById('sidebar-categories'); if(!sidebar) return;
+    sidebar.innerHTML = '';
+    Object.keys(productDatabase).filter(k => k !== '__columns__' && k !== '__templates__').forEach(cat => {
+        const div = document.createElement('div');
+        div.className = `sidebar-item relative py-3 px-2 flex flex-col items-center justify-center text-gray-500 cursor-pointer ${cat === currentCategory ? 'active' : ''}`;
+        div.onclick = () => { 
+            currentCategory = cat; 
+            currentHpFilter = 'all'; 
+            renderSidebar(); 
+            renderHpFilters(currentCategory);
+            renderProducts(currentCategory); 
+            renderHotProducts(currentCategory); 
+            const scrollArea = document.getElementById('product-list-scroll');
+            if(scrollArea) scrollArea.scrollTop = 0; 
+        };
+        div.innerHTML = `<i class="fa-solid ${categoryIcons[cat] || 'fa-tag'} text-lg mb-1 ${cat === currentCategory ? 'text-blue-500' : 'text-gray-400'}"></i><span class="text-[10px] text-center w-full">${cat}</span>`;
+        sidebar.appendChild(div);
+    });
+}
+
+function renderHpFilters(cat) {
+    const container = document.getElementById('hp-filter-container');
+    if (!container) return;
+    const products = productDatabase[cat] || [];
+    
+    const hpSet = new Set();
+    products.forEach(p => {
+        if (p.specs && p.specs.hp && p.specs.hp.trim()) {
+            hpSet.add(p.specs.hp.trim());
+        }
+    });
+    
+    let hpList = Array.from(hpSet).sort((a, b) => {
+        const numA = parseFloat(a.match(/[\d\.]+/) || 0);
+        const numB = parseFloat(b.match(/[\d\.]+/) || 0);
+        if(numA === numB) return a.localeCompare(b);
+        return numA - numB;
+    });
+    
+    let html = `<div class="px-2.5 py-1 rounded-full text-[10px] font-bold cursor-pointer transition-colors border ${currentHpFilter === 'all' ? 'bg-blue-500 text-white border-blue-500 shadow-sm' : 'bg-gray-50 text-gray-500 border-transparent hover:bg-gray-100'}" onclick="setHpFilter('all')">全部</div>`;
+    
+    hpList.forEach(hp => {
+        const isActive = currentHpFilter === hp;
+        html += `<div class="px-2.5 py-1 rounded-full text-[10px] font-bold cursor-pointer transition-colors border ${isActive ? 'bg-blue-500 text-white border-blue-500 shadow-sm' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'}" onclick="setHpFilter('${hp}')">${hp}</div>`;
+    });
+    
+    container.innerHTML = html;
+    container.style.display = hpList.length > 0 ? 'flex' : 'none';
+}
+
+function setHpFilter(hp) {
+    currentHpFilter = hp;
+    renderHpFilters(currentCategory);
+    renderProducts(currentCategory);
+}
+
+function renderHotProducts(cat) {
+    const container = document.getElementById('hot-container'); if(!container) return;
+    const products = productDatabase[cat] || [];
+    let hotOnes = products.filter(p => p.isHot).slice(0, 2); let html = '';
+    for (let i = 0; i < 2; i++) {
+        if (i < hotOnes.length) {
+            const p = hotOnes[i]; const shortName = p.name.includes('/') ? p.name.split('/')[1] : p.name;
+            html += `<div class="hot-card bg-gray-50 p-2 rounded-xl min-w-[160px] flex items-center space-x-2 cursor-pointer shadow-sm" onclick="openDetail('${p.name}')">
+                <img src="${p.img}" class="hot-img w-10 h-10 rounded object-cover bg-white border border-gray-100 flex-shrink-0" onclick="event.stopPropagation(); openPreview('${p.img}')">
+                <div class="flex-1 overflow-hidden"><div class="text-[11px] font-bold text-gray-800 leading-tight line-clamp-2" title="${p.name}">${shortName}</div><div class="text-[10px] text-red-500 mt-0.5">${p.guidePrice === '面议' ? '面议' : '¥'+p.guidePrice} <span class="text-gray-400 line-through scale-90 inline-block">¥${p.officialPrice}</span></div></div>
+            </div>`;
+        } else {
+            html += `<div class="flex items-center justify-center bg-gray-50 border-2 border-dashed border-gray-200 p-2 rounded-xl min-w-[160px] cursor-pointer text-gray-400" onclick="openModal('hot-choice-modal')"><i class="fa-solid fa-plus mr-2 text-gray-400"></i><span class="text-xs font-bold">添加推荐</span></div>`;
+        }
+    } container.innerHTML = html;
+}
+
+function renderProducts(cat) {
+    const container = document.getElementById('product-container'); if(!container) return;
+    let products = productDatabase[cat] || [];
+    
+    if (currentHpFilter !== 'all') {
+        products = products.filter(p => p.specs && p.specs.hp && p.specs.hp.trim() === currentHpFilter);
+    }
+    
+    if (products.length === 0) return container.innerHTML = '<div style="text-align:center;padding:30px;color:#999;font-size:12px;">暂无符合条件的数据，请进入后台录入</div>';
+    let html = '';
+    products.forEach(p => {
+        const isNego = p.guidePrice === '面议'; const inPk = pkList.some(item => item.name === p.name);
+        const vsClass = inPk ? 'bg-orange-50 text-orange-500 border-orange-500' : 'text-gray-400 border-gray-300';
+        html += `<div class="product-item bg-white rounded-xl p-2 shadow-sm flex items-center relative mb-2">
+            <div class="w-8 flex flex-col items-center cursor-pointer" onclick="openPreview('${p.img}')"><img src="${p.img}" class="w-7 h-7 rounded object-cover mb-1 border border-gray-100"><span class="text-[8px] text-gray-400 font-medium text-center">${cat.replace('式','')}</span></div>
+            <div class="flex-1 px-1 border-l border-gray-100 ml-1 flex flex-col items-center justify-center cursor-pointer overflow-hidden" onclick="openDetail('${p.name}')">
+                <div class="text-[11px] font-bold text-gray-800 leading-tight text-center w-full truncate">${p.name}</div>
+                <div class="text-[8px] bg-blue-50 text-blue-600 border border-blue-100 font-mono px-2 py-[2px] rounded-full my-0.5 max-w-full truncate">${p.specs?.modelId || '标准款'}</div>
+                <div class="text-[9px] text-orange-500 font-medium text-center w-full truncate">${p.tags}</div>
+            </div>
+            <div class="w-[40px] text-center text-[10px] text-gray-500 font-medium">${p.officialPrice}</div>
+            <div class="w-[50px] flex flex-col items-center justify-center gap-1">
+                <div class="bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded cursor-pointer hover:bg-red-600 w-full text-center shadow-sm transition-colors" onclick="addToCart(event, '${p.name}')">${isNego ? '面议' : p.guidePrice}</div>
+                <div class="text-[8px] border px-1 rounded cursor-pointer w-full text-center ${vsClass}" onclick="togglePK(event, '${p.name}')">VS 对比</div>
+            </div>
+        </div>`;
+    }); container.innerHTML = html;
+}
+
+// =============== 4. 购物车、PK与配置清单生成功能 ===============
+function togglePK(e, name) {
+    e.stopPropagation(); const p = findProductByName(name); if (!p) return;
+    const idx = pkList.findIndex(item => item.name === name);
+    if (idx > -1) pkList.splice(idx, 1); else { if (pkList.length >= 2) return alert("最多只能对比 2 款"); pkList.push(p); }
+    const badge = document.getElementById('pk-badge'); if(badge){ badge.style.display = pkList.length > 0 ? 'flex' : 'none'; badge.innerText = pkList.length; }
+    renderProducts(currentCategory); 
+}
+function triggerPK() {
+    if (pkList.length !== 2) return alert("请先选满 2 款产品进行对比");
+    const p1 = pkList[0], p2 = pkList[1];
+    document.getElementById('pk-img-1').innerHTML = `<img src="${p1.img}" class="w-16 h-16 object-cover mx-auto">`; document.getElementById('pk-img-2').innerHTML = `<img src="${p2.img}" class="w-16 h-16 object-cover mx-auto">`;
+    document.getElementById('pk-name-1').innerText = p1.name; document.getElementById('pk-name-2').innerText = p2.name;
+    document.getElementById('pk-off-1').innerText = '¥'+p1.officialPrice; document.getElementById('pk-off-2').innerText = '¥'+p2.officialPrice;
+    document.getElementById('pk-guide-1').innerText = p1.guidePrice; document.getElementById('pk-guide-2').innerText = p2.guidePrice;
+    document.getElementById('pk-apf-1').innerText = p1.specs?.apf||'-'; document.getElementById('pk-apf-2').innerText = p2.specs?.apf||'-';
+    openModal('pk-result-modal');
+}
+function clearPK() { pkList = []; const badge = document.getElementById('pk-badge'); if(badge){badge.style.display = 'none';} renderProducts(currentCategory); closeModal('pk-result-modal'); }
+
+function addToCart(e, name) {
+    e.stopPropagation(); const p = findProductByName(name); if (!p) return;
+    const itemToAdd = {...p};
+    if (!itemToAdd.specs) itemToAdd.specs = {};
+    if (!itemToAdd.specs.type) {
+        for(let cat in productDatabase) {
+            if(productDatabase[cat].find(x => x.name === itemToAdd.name)) {
+                itemToAdd.specs.type = cat;
+                break;
+            }
+        }
+    }
+    
+    cart.push(itemToAdd); updateCartUI();
+    const dot = document.createElement('div'); dot.style.cssText = `position:fixed;left:${e.clientX}px;top:${e.clientY}px;width:12px;height:12px;background:#3b82f6;border-radius:50%;z-index:9999;transition:all 0.5s ease-in;`;
+    document.body.appendChild(dot); 
+    const targetEl = document.getElementById('btn-cart');
+    if(targetEl) {
+        const target = targetEl.getBoundingClientRect();
+        setTimeout(() => { dot.style.left = (target.left+10)+'px'; dot.style.top = (target.top+10)+'px'; dot.style.transform = 'scale(0.1)'; dot.style.opacity = '0'; }, 10);
+    }
+    setTimeout(() => dot.remove(), 550);
+}
+
+function updateCartUI() {
+    let total = cart.reduce((sum, item) => sum + (parseInt(item.guidePrice) || 0), 0);
+    const badge = document.getElementById('cart-badge'); 
+    if(badge){ badge.style.display = cart.length > 0 ? 'flex' : 'none'; badge.innerText = cart.length; }
+    
+    let remaining = maxBudget - total;
+    const colorClass = remaining < 0 ? 'text-red-600' : 'text-orange-600';
+    const currentEl = document.getElementById('budget-current'); 
+    if(currentEl) {
+        currentEl.className = `text-2xl font-black ml-2 transition-colors ${colorClass}`;
+        currentEl.innerText = `¥${remaining}`; 
+    }
+    
+    const maxEl = document.getElementById('budget-max'); if(maxEl) maxEl.innerText = `(总预算: ¥${maxBudget})`;
+    const container = document.getElementById('cart-items-container');
+    if(!container) return;
+    container.innerHTML = cart.length === 0 ? '<div class="text-center py-10 text-gray-400 text-xs">清单为空</div>' :
+        cart.map((item, i) => `<div class="flex items-center px-4 py-3 border-b border-gray-50"><img src="${item.img}" class="w-10 h-10 rounded object-cover"><div class="flex-1 ml-3"><div class="text-xs font-bold text-gray-800">${item.name}</div><div class="text-[10px] text-blue-500 font-bold mt-0.5">¥${item.guidePrice}</div></div><div class="text-gray-300 hover:text-red-500 cursor-pointer px-2" onclick="cart.splice(${i},1); updateCartUI();"><i class="fa-solid fa-trash-can"></i></div></div>`).join('');
+}
+const btnSubmitBudget = document.getElementById('btn-submit-budget');
+if(btnSubmitBudget){
+    btnSubmitBudget.onclick = () => { 
+        maxBudget = parseInt(document.getElementById('input-max-budget').value) || 20000; 
+        document.getElementById('display-username').innerText = document.getElementById('input-username').value || '未设置';
+        updateCartUI(); closeModal('budget-modal'); 
+    };
+}
+
+// ----- 生成专属配置单图片核心逻辑 -----
+async function generateReceiptImage() {
+    if (cart.length === 0) {
+        showToast("购物车为空，无法生成配置单", "error");
+        return;
+    }
+    showToast("正在生成专属配置单...");
+
+    const groups = {};
+    cart.forEach(item => {
+        const cat = item.specs?.type || '其他产品';
+        if (!groups[cat]) groups[cat] = [];
+        groups[cat].push(item);
+    });
+
+    const loadedImages = {};
+    await Promise.all(cart.map(item => {
+        return new Promise(resolve => {
+            if (loadedImages[item.img]) return resolve();
+            const img = new Image();
+            img.onload = () => { loadedImages[item.img] = img; resolve(); };
+            img.onerror = () => resolve(); 
+            img.src = item.img;
+        });
+    }));
+
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    const width = 800;
+
+    let height = 220; 
+    for (const cat in groups) {
+        height += 60; 
+        height += groups[cat].length * 120; 
+    }
+    height += 200; 
+
+    canvas.width = width;
+    canvas.height = height;
+
+    // 背景与卡片
+    ctx.fillStyle = '#f4f5f9';
+    ctx.fillRect(0, 0, width, height);
+    
+    ctx.fillStyle = '#ffffff';
+    ctx.shadowColor = 'rgba(0,0,0,0.06)';
+    ctx.shadowBlur = 20;
+    ctx.beginPath();
+    ctx.roundRect(30, 30, width - 60, height - 60, 24);
+    ctx.fill();
+    ctx.shadowColor = 'transparent';
+
+    // 头部信息
+    ctx.fillStyle = '#1e293b';
+    ctx.font = 'bold 42px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('专属空调配置方案', width / 2, 100);
+
+    ctx.font = '22px sans-serif';
+    ctx.fillStyle = '#64748b';
+    const userName = document.getElementById('display-username').innerText || '尊贵客户';
+    const dateStr = new Date().toLocaleDateString();
+    ctx.fillText(`客户：${userName}    |    日期：${dateStr}`, width / 2, 150);
+
+    // 分割线
+    ctx.strokeStyle = '#e2e8f0';
+    ctx.lineWidth = 2;
+    ctx.setLineDash([8, 6]);
+    ctx.beginPath(); ctx.moveTo(70, 190); ctx.lineTo(width - 70, 190); ctx.stroke();
+    ctx.setLineDash([]);
+
+    // 商品列表渲染
+    let currentY = 210;
+    let totalGuide = 0;
+    let totalOfficial = 0;
+
+    for (const cat in groups) {
+        currentY += 40;
+        ctx.fillStyle = '#3b82f6';
+        ctx.beginPath(); ctx.roundRect(70, currentY - 24, 8, 28, 4); ctx.fill();
+        
+        ctx.fillStyle = '#1e293b';
+        ctx.font = 'bold 28px sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText(cat, 95, currentY);
+        currentY += 20;
+
+        groups[cat].forEach(item => {
+            currentY += 20;
+            // 列表项背景
+            ctx.fillStyle = '#f8fafc';
+            ctx.beginPath(); ctx.roundRect(70, currentY, width - 140, 100, 16); ctx.fill();
+
+            // 产品主图
+            const img = loadedImages[item.img];
+            if (img) ctx.drawImage(img, 90, currentY + 10, 80, 80);
+
+            // 文本信息
+            ctx.fillStyle = '#1e293b';
+            ctx.font = 'bold 22px sans-serif';
+            ctx.textAlign = 'left';
+            let shortName = item.name;
+            if(shortName.length > 18) shortName = shortName.substring(0, 18) + '...';
+            ctx.fillText(shortName, 190, currentY + 40);
+
+            ctx.fillStyle = '#64748b';
+            ctx.font = '18px sans-serif';
+            ctx.fillText(`型号: ${item.specs?.modelId || '-'}  |  匹数: ${item.specs?.hp || '-'}`, 190, currentY + 75);
+
+            // 价格
+            ctx.textAlign = 'right';
+            const guideP = parseInt(item.guidePrice) || 0;
+            const offP = parseInt(item.officialPrice) || 0;
+            totalGuide += guideP; totalOfficial += offP;
+
+            ctx.fillStyle = '#ef4444';
+            ctx.font = 'bold 30px sans-serif';
+            ctx.fillText(item.guidePrice === '面议' ? '面议' : `¥${item.guidePrice}`, width - 90, currentY + 45);
+
+            ctx.fillStyle = '#94a3b8';
+            ctx.font = '18px sans-serif';
+            ctx.fillText(`官网价: ¥${item.officialPrice}`, width - 90, currentY + 75);
+
+            const textWidth = ctx.measureText(`官网价: ¥${item.officialPrice}`).width;
+            ctx.beginPath(); ctx.moveTo(width - 90 - textWidth, currentY + 68); ctx.lineTo(width - 90, currentY + 68);
+            ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 1.5; ctx.stroke();
+
+            currentY += 100;
+        });
+    }
+
+    // 底部汇总
+    currentY += 50;
+    ctx.strokeStyle = '#e2e8f0';
+    ctx.lineWidth = 2;
+    ctx.setLineDash([8, 6]);
+    ctx.beginPath(); ctx.moveTo(70, currentY); ctx.lineTo(width - 70, currentY); ctx.stroke();
+    ctx.setLineDash([]);
+
+    currentY += 40;
+    
+    ctx.textAlign = 'right';
+    ctx.fillStyle = '#94a3b8';
+    ctx.font = '20px sans-serif';
+    const offText = `官网总价: ¥${totalOfficial}`;
+    ctx.fillText(offText, width - 70, currentY);
+    
+    const textWidthOff = ctx.measureText(offText).width;
+    ctx.beginPath(); ctx.moveTo(width - 70 - textWidthOff, currentY - 6); ctx.lineTo(width - 70, currentY - 6);
+    ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 1.5; ctx.stroke();
+
+    currentY += 65; 
+    
+    const guideStr = totalGuide.toString();
+    ctx.font = 'bold 46px sans-serif';
+    const priceW = ctx.measureText(guideStr).width;
+    
+    ctx.font = 'bold 22px sans-serif';
+    const labelStr = '配置单总价:  ¥ ';
+    const labelW = ctx.measureText(labelStr).width;
+    
+    const boxW = priceW + labelW + 40;
+    const boxH = 70;
+    const boxX = width - 70 - boxW;
+    const boxY = currentY - 48; 
+
+    ctx.fillStyle = '#fef2f2'; 
+    ctx.beginPath();
+    ctx.roundRect(boxX, boxY, boxW, boxH, 16);
+    ctx.fill();
+    ctx.strokeStyle = '#fee2e2'; 
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    ctx.fillStyle = '#ef4444';
+    ctx.font = 'bold 46px sans-serif';
+    ctx.textAlign = 'right';
+    ctx.fillText(guideStr, width - 70 - 20, currentY + 2);
+
+    ctx.fillStyle = '#dc2626'; 
+    ctx.font = 'bold 22px sans-serif';
+    ctx.fillText(labelStr, width - 70 - 20 - priceW, currentY - 3);
+
+    ctx.textAlign = 'left';
+    ctx.fillStyle = '#64748b';
+    ctx.font = '22px sans-serif';
+    ctx.fillText(`共计 ${cart.length} 件商品`, 70, currentY - 20);
+
+    const dataUrl = canvas.toDataURL('image/png');
+    document.getElementById('receipt-img').src = dataUrl;
+    closeModal('cart-modal');
+    openModal('receipt-modal');
+}
+
+function downloadReceipt() {
+    const img = document.getElementById('receipt-img');
+    if(!img.src) return;
+    const a = document.createElement('a');
+    a.href = img.src;
+    const userName = document.getElementById('display-username').innerText || '用户';
+    a.download = `${userName}的专属空调配置单.png`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+}
+
+
+// =============== 5. 前台详情页双列 Grid 与编辑功能 ===============
+function toggleDetailEditMode() {
+    isDetailEditMode = !isDetailEditMode;
+    renderDetailSpecs();
+}
+
+function openDetail(name) {
+    const p = findProductByName(name); if (!p) return; editingProduct = p;
+    document.getElementById('detail-img').src = p.img; document.getElementById('detail-name').innerText = p.name; document.getElementById('detail-tags').innerText = p.tags || '';
+    document.getElementById('detail-guide').innerText = p.guidePrice === '面议' ? '面议' : '¥' + p.guidePrice; document.getElementById('detail-official').innerText = '¥' + p.officialPrice;
+    
+    isDetailEditMode = false;
+    renderDetailSpecs(); 
+    openModal('detail-modal');
+}
+
+function renderDetailSpecs() {
+    const headerHtml = `
+        <h3 class="text-sm font-bold text-gray-800 border-l-4 border-blue-500 pl-2">所有配置清单</h3>
+        <button onclick="toggleDetailEditMode()" class="px-3 py-1 rounded-full text-[10px] font-bold transition-colors shadow-sm flex items-center gap-1 ${isDetailEditMode ? 'bg-blue-500 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}">
+            ${isDetailEditMode ? '<i class="fa-solid fa-check"></i> 完成编辑' : '<i class="fa-solid fa-pen"></i> 编辑参数'}
+        </button>
+    `;
+    const headerEl = document.getElementById('detail-specs-header');
+    if(headerEl) headerEl.innerHTML = headerHtml;
+
+    let html = '<div class="grid grid-cols-2 gap-[1px] bg-gray-200 border border-gray-200 rounded-lg overflow-hidden">';
+    const specs = editingProduct.specs || {};
+    const activeKeys = Object.keys(specs).filter(k => specs[k] !== undefined && specs[k] !== null && specs[k].toString().trim() !== '');
+    
+    activeKeys.forEach(key => {
+        const col = specColumns.find(c => c.key === key); 
+        const label = col ? col.title : key; 
+        const safeVal = specs[key].toString().replace(/"/g, '&quot;');
+        
+        let colSpan = "col-span-1";
+        if (safeVal.length > 16 || label.includes('尺寸') || label.includes('清单')) colSpan = "col-span-2";
+        
+        html += `<div class="${colSpan} flex bg-white relative group overflow-hidden">
+                    <div class="w-[45%] bg-gray-50 flex items-center px-2 py-2 relative border-r border-gray-100 shrink-0">`;
+        
+        if (isDetailEditMode) {
+            html += `<button onclick="deleteDetailSpec('${key}')" class="absolute left-0.5 text-red-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity w-5 h-5 flex items-center justify-center z-10 bg-gray-50"><i class="fa-solid fa-minus-circle text-[11px]"></i></button>
+                     <span class="text-[10px] text-gray-500 font-medium w-full break-words whitespace-normal leading-tight group-hover:pl-4 transition-all duration-200" title="${label}">${label}</span>`;
+        } else {
+            html += `<span class="text-[10px] text-gray-500 font-medium w-full break-words whitespace-normal leading-tight" title="${label}">${label}</span>`;
+        }
+        
+        html += `</div><div class="w-[55%] relative flex-1 flex items-center">`;
+        
+        if (isDetailEditMode) {
+            html += `<textarea rows="1" class="w-full text-[11px] text-gray-800 font-bold px-2 py-2 bg-transparent outline-none focus:bg-blue-50 focus:ring-1 focus:ring-inset focus:ring-blue-400 transition-colors placeholder-gray-300 resize-none overflow-hidden" oninput="this.style.height = 'auto'; this.style.height = this.scrollHeight + 'px';" onchange="updateDetailSpec('${key}', this.value)" placeholder="空">${specs[key]}</textarea>`;
+        } else {
+            html += `<div class="w-full text-[11px] text-gray-800 font-bold px-2 py-2 break-words whitespace-normal leading-relaxed">${specs[key]}</div>`;
+        }
+        html += `</div></div>`;
+    });
+    html += `</div>`;
+    
+    if (isDetailEditMode) {
+        html += `<button onclick="addDetailSpec()" class="w-full mt-3 py-2 text-center text-blue-500 hover:bg-blue-50 text-[11px] font-bold transition-colors flex items-center justify-center gap-1 border border-dashed border-blue-200 bg-white rounded-lg shadow-sm"><i class="fa-solid fa-plus-circle"></i> 添加新参数</button>`;
+    }
+    
+    const containerEl = document.getElementById('detail-specs-container');
+    if(containerEl) containerEl.innerHTML = html;
+
+    if (isDetailEditMode) {
+        setTimeout(() => {
+            document.querySelectorAll('#detail-specs-container textarea').forEach(ta => {
+                ta.style.height = 'auto'; ta.style.height = ta.scrollHeight + 'px';
+            });
+        }, 10);
+    }
+}
+
+function updateDetailSpec(key, val) { if(editingProduct.specs) { editingProduct.specs[key] = val; excelRenderTable(); renderHpFilters(currentCategory); scheduleSharedDatabaseSave(); } }
+function deleteDetailSpec(key) { askConfirm("确定要移除该参数配置吗？", () => { delete editingProduct.specs[key]; renderDetailSpecs(); excelRenderTable(); renderHpFilters(currentCategory); scheduleSharedDatabaseSave(); }); }
+function addDetailSpec() {
+    askPrompt("新参数名称：", (name) => { if(name.trim()) askPrompt(`【${name.trim()}】的值：`, (val) => { if(val.trim()){ let col = specColumns.find(c => c.title === name.trim()); let key = col ? col.key : name.trim(); if(!col) { const newCol = { isSpec: true, key: key, title: name.trim() }; specColumns.push(newCol); masterSpecColumns.push(newCol); productDatabase['__columns__'] = specColumns; updateColumns(); } if(!editingProduct.specs) editingProduct.specs={}; editingProduct.specs[key] = val.trim(); renderDetailSpecs(); excelRenderTable(); renderHpFilters(currentCategory); scheduleSharedDatabaseSave(); }}); });
+}
+
+const btnDeleteProduct = document.getElementById('btn-delete-product-detail');
+if(btnDeleteProduct) btnDeleteProduct.onclick = () => { if(editingProduct) openModal('delete-db-modal'); };
+
+const btnConfirmDeleteDb = document.getElementById('btn-confirm-delete-db');
+if(btnConfirmDeleteDb) {
+    btnConfirmDeleteDb.onclick = () => {
+        const products = productDatabase[currentCategory]; products.splice(products.findIndex(p => p.name === editingProduct.name), 1);
+        cart = cart.filter(item => item.name !== editingProduct.name); updateCartUI();
+        pkList = pkList.filter(item => item.name !== editingProduct.name); const badge = document.getElementById('pk-badge'); if(badge) badge.innerText = pkList.length;
+        closeModal('delete-db-modal'); closeModal('detail-modal'); renderHpFilters(currentCategory); renderProducts(currentCategory); renderHotProducts(currentCategory); excelRenderTable(); editingProduct = null; scheduleSharedDatabaseSave();
+    };
+}
+
+const btnConfirmRemove = document.getElementById('btn-confirm-remove');
+if(btnConfirmRemove){
+    btnConfirmRemove.onclick = () => { const p = findProductByName(window.itemToRemoveName); if (p) p.isHot = false; closeModal('confirm-modal'); renderHotProducts(currentCategory); excelRenderTable(); scheduleSharedDatabaseSave(); };
+}
+
+function openSelectFromDb() {
+    closeModal('hot-choice-modal'); const list = document.getElementById('db-list'); const products = (productDatabase[currentCategory] || []).filter(p => !p.isHot);
+    list.innerHTML = products.length === 0 ? '<div class="text-center py-6 text-gray-400 text-xs">无可推荐产品</div>' : products.map(p => `<div class="flex items-center px-3 py-2 border-b border-gray-50 cursor-pointer hover:bg-gray-50" onclick="selectToHot('${p.name}')"><img src="${p.img}" class="w-8 h-8 rounded"><div class="ml-3 flex-1"><div class="text-xs font-bold">${p.name}</div></div><i class="fa-solid fa-plus text-blue-500"></i></div>`).join('');
+    openModal('db-select-modal');
+}
+function selectToHot(name) { const p = findProductByName(name); if(p) p.isHot = true; closeModal('db-select-modal'); renderHotProducts(currentCategory); excelRenderTable(); scheduleSharedDatabaseSave(); }
+
+// =============== 6. 独立全局 Excel 超级后台 ===============
+const defaultTemplates = { "基础电商": ['brand', 'modelId', 'hp', 'applicableArea', 'energyLevel', 'coolingCapacity', 'heatingCapacity'], "核心性能": ['brand', 'modelId', 'coolingCapacity', 'heatingCapacity', 'coolingPower', 'heatingPower', 'airflow', 'apf', 'inMaxNoise', 'outMaxNoise'] };
+const baseColumns = [ 
+    { key: '_action', title: '<div class="flex items-center justify-center gap-2"><input type="checkbox" id="excel-select-all" class="w-3.5 h-3.5 accent-blue-500" onchange="toggleExcelSelectAll(this)" title="全选"> 操作</div>', width: '140px' }, 
+    { key: 'img', title: '图片', width: '80px' }, 
+    { key: 'isHot', title: '热门', type: 'checkbox', width: '60px' }, 
+    { key: 'name', title: '名称/型号', placeholder: '必填', width: '180px' }, 
+    { key: 'tags', title: '核心卖点', width: '180px' }, 
+    { key: 'officialPrice', title: '官网价', width: '100px' }, 
+    { key: 'guidePrice', title: '指导价', width: '100px' } 
+];
+const masterSpecColumns = [ { isSpec: true, key: 'brand', title: '品牌' }, { isSpec: true, key: 'productId', title: '商品编号' }, { isSpec: true, key: 'modelId', title: '型号' }, { isSpec: true, key: 'applicableArea', title: '适用面积' }, { isSpec: true, key: 'coolingPower', title: '制冷功率' }, { isSpec: true, key: 'airflow', title: '循环风量' }, { isSpec: true, key: 'inMaxNoise', title: '内机最大噪音' }, { isSpec: true, key: 'outMaxNoise', title: '外机最大噪音' }, { isSpec: true, key: 'sweep', title: '扫风方式' }, { isSpec: true, key: 'heatingPower', title: '制热功率' }, { isSpec: true, key: 'heatingCapacity', title: '制热量' }, { isSpec: true, key: 'coolingCapacity', title: '制冷量' }, { isSpec: true, key: 'inNoiseQuiet', title: '内机静音' }, { isSpec: true, key: 'refrigerant', title: '制冷剂' }, { isSpec: true, key: 'voltage', title: '电压/频率' }, { isSpec: true, key: 'outDimensions', title: '外机尺寸' }, { isSpec: true, key: 'inDimensions', title: '内机尺寸' }, { isSpec: true, key: 'outWeight', title: '外机净重' }, { isSpec: true, key: 'inWeight', title: '内机净重' }, { isSpec: true, key: 'apf', title: '能效比(APF)' }, { isSpec: true, key: 'inverter', title: '变频/定频' }, { isSpec: true, key: 'features', title: '功能' }, { isSpec: true, key: 'hp', title: '匹数' }, { isSpec: true, key: 'controlMode', title: '操控方式' }, { isSpec: true, key: 'type', title: '类型(如: 壁挂式)' }, { isSpec: true, key: 'energyLevel', title: '能效等级' }, { isSpec: true, key: 'coolHeatType', title: '冷暖类型' } ];
+let specColumns = [...masterSpecColumns]; let excelColumns = [];
+
+function openExcelManager() {
+    if (typeof showToast === 'function') showToast('已打开独立后台');
+    window.open('./admin.html', '_blank');
+}
+function closeExcelManager() { 
+    document.getElementById('excel-manager-modal').style.display = 'none'; 
+    renderHpFilters(currentCategory);
+    renderProducts(currentCategory); 
+    renderHotProducts(currentCategory); 
+    updateCartUI(); 
+}
+
+function showToast(message, type = 'success') {
+    const container = document.getElementById('toast-container'); const toast = document.createElement('div'); toast.className = `toast ${type}`;
+    toast.innerHTML = `${type === 'success' ? '<i class="fa-solid fa-check-circle"></i>' : '<i class="fa-solid fa-circle-exclamation"></i>'} <span>${message}</span>`;
+    container.appendChild(toast); requestAnimationFrame(() => toast.classList.add('show')); setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 300); }, 3000);
+}
+
+function askConfirm(msg, callback) {
+    const m = document.getElementById('custom-confirm'); const b = document.getElementById('confirm-box'); document.getElementById('confirm-msg').innerText = msg;
+    m.classList.remove('hidden'); void m.offsetWidth; m.classList.add('opacity-100'); b.classList.remove('scale-95'); b.classList.add('scale-100');
+    const c = () => { m.classList.remove('opacity-100'); b.classList.remove('scale-100'); b.classList.add('scale-95'); setTimeout(() => m.classList.add('hidden'), 200); };
+    document.getElementById('confirm-cancel').onclick = c; document.getElementById('confirm-ok').onclick = () => { c(); callback(); };
+}
+
+function askPrompt(msg, callback) {
+    const m = document.getElementById('custom-prompt'); const b = document.getElementById('prompt-box'); const i = document.getElementById('prompt-input');
+    document.getElementById('prompt-msg').innerText = msg; i.value = ''; m.classList.remove('hidden'); void m.offsetWidth; m.classList.add('opacity-100'); b.classList.remove('scale-95'); b.classList.add('scale-100'); setTimeout(() => i.focus(), 100);
+    const c = () => { m.classList.remove('opacity-100'); b.classList.remove('scale-100'); b.classList.add('scale-95'); setTimeout(() => m.classList.add('hidden'), 200); };
+    document.getElementById('prompt-cancel').onclick = c; document.getElementById('prompt-ok').onclick = () => { c(); callback(i.value); };
+}
+
+function updateColumns() { excelColumns = [...baseColumns, ...specColumns]; excelRenderHeaders(); excelRenderTable(); }
+function excelInit() {
+    if (!productDatabase['__templates__']) productDatabase['__templates__'] = JSON.parse(JSON.stringify(defaultTemplates));
+    if (productDatabase['__columns__']) specColumns = productDatabase['__columns__'];
+    excelCurrentCategory = currentCategory; updateColumns(); renderTemplates(); excelRenderSidebar(); excelSwitchCategory(excelCurrentCategory);
+}
+function excelRenderHeaders() { const tr = document.getElementById('excel-table-header'); tr.innerHTML = ''; excelColumns.forEach(col => { const th = document.createElement('th'); th.innerHTML = col.title; if(col.width) th.style.minWidth = col.width; tr.appendChild(th); }); }
+function excelRenderSidebar() {
+    const ul = document.getElementById('excel-category-list'); ul.innerHTML = '';
+    Object.keys(productDatabase).filter(k => k !== '__columns__' && k !== '__templates__').forEach(cat => {
+        const count = productDatabase[cat] ? productDatabase[cat].length : 0; const li = document.createElement('li');
+        li.className = `px-5 py-3 cursor-pointer font-medium border-l-[3px] transition flex justify-between items-center group ${excelCurrentCategory === cat ? 'bg-indigo-50/80 border-indigo-600 text-indigo-700' : 'border-transparent text-gray-600 hover:bg-gray-50'}`;
+        li.innerHTML = `<div class="flex items-center gap-3"><i class="fa-solid ${categoryIcons[cat]||'fa-tag'} w-4 text-center"></i><span>${cat}</span></div><span class="bg-gray-100 text-gray-500 text-xs px-2 py-0.5 rounded-full group-hover:bg-indigo-100 group-hover:text-indigo-600">${count}</span>`;
+        li.onclick = () => excelSwitchCategory(cat); ul.appendChild(li);
+    });
+}
+function excelSwitchCategory(cat) { excelCurrentCategory = cat; document.getElementById('excel-current-category-title').innerText = cat; excelRenderSidebar(); excelRenderTable(); }
+function excelAddCategory() { askPrompt("请输入新分类名称：", (name) => { if (name && name.trim() !== '') { if (!productDatabase[name] && name !== '__columns__' && name !== '__templates__') { productDatabase[name] = []; excelSwitchCategory(name); } else showToast("分类已存在！", "error"); } }); }
+function excelAddRow() {
+    if (!productDatabase[excelCurrentCategory]) productDatabase[excelCurrentCategory] = [];
+    const emptySpecs = {}; specColumns.forEach(c => emptySpecs[c.key] = "");
+    productDatabase[excelCurrentCategory].unshift({ name: "新商品型号", tags: "", officialPrice: "", guidePrice: "", isHot: false, img: generateDynamicImage("新商品型号", excelCurrentCategory), specs: emptySpecs });
+    excelRenderTable(); excelRenderSidebar(); document.getElementById('excel-table-container').scrollTop = 0;
+}
+function excelCopyRow(index) { const clone = JSON.parse(JSON.stringify(productDatabase[excelCurrentCategory][index])); if(clone.name) clone.name += " (副本)"; productDatabase[excelCurrentCategory].splice(index + 1, 0, clone); excelRenderTable(); excelRenderSidebar(); }
+function excelDeleteRow(index) { askConfirm('确定删除这行数据吗？', () => { productDatabase[excelCurrentCategory].splice(index, 1); excelRenderTable(); excelRenderSidebar(); showToast("行已删除"); }); }
+
+function toggleExcelSelectAll(cb) {
+    document.querySelectorAll('.excel-row-cb').forEach(el => el.checked = cb.checked);
+}
+
+function excelBatchDelete() {
+    const checkedBoxes = document.querySelectorAll('.excel-row-cb:checked');
+    if (checkedBoxes.length === 0) return showToast("请先在最左侧勾选需要删除的行", "error");
+    
+    askConfirm(`警告：确定要删除勾选的 ${checkedBoxes.length} 行数据吗？`, () => {
+        const indices = Array.from(checkedBoxes).map(cb => parseInt(cb.dataset.index)).sort((a, b) => b - a);
+        indices.forEach(idx => {
+            productDatabase[excelCurrentCategory].splice(idx, 1);
+        });
+        const selectAllCb = document.getElementById('excel-select-all');
+        if (selectAllCb) selectAllCb.checked = false;
+        
+        excelRenderTable(); 
+        excelRenderSidebar(); 
+        showToast(`已成功删除 ${indices.length} 行记录`);
+    });
+}
+
+function excelRenderTable() {
+    const tbody = document.getElementById('excel-table-body'); tbody.innerHTML = '';
+    const items = productDatabase[excelCurrentCategory] || []; document.getElementById('excel-row-count').innerText = items.length; document.getElementById('excel-empty-state').style.display = items.length === 0 ? 'flex' : 'none';
+    
+    items.forEach((item, index) => {
+        const tr = document.createElement('tr'); tr.className = 'hover:bg-blue-50/30 focus-within:bg-blue-50/50'; if(!item.specs) item.specs = {};
+        excelColumns.forEach(col => {
+            const td = document.createElement('td'); td.className = 'relative'; 
+            if (col.key === '_action') {
+                td.innerHTML = `<div class="flex items-center justify-center gap-1 h-full px-1">
+                    <input type="checkbox" class="excel-row-cb w-3.5 h-3.5 accent-blue-500 mr-1" data-index="${index}">
+                    <button class="w-6 h-6 rounded bg-gray-50 text-gray-500 hover:text-red-600 hover:bg-red-50 flex items-center justify-center shadow-sm" title="删除当前行" onclick="excelDeleteRow(${index})"><i class="fa-solid fa-trash-can text-[10px]"></i></button>
+                    <button class="w-6 h-6 rounded bg-gray-50 text-gray-500 hover:text-blue-600 hover:bg-blue-50 flex items-center justify-center shadow-sm" title="复制当前行" onclick="excelCopyRow(${index})"><i class="fa-solid fa-copy text-[10px]"></i></button>
+                </div>`;
+            } else if (col.key === 'img') {
+                const imgWrap = document.createElement('div'); imgWrap.className = 'w-9 h-9 bg-gray-50 border border-gray-200 rounded mx-auto overflow-hidden flex items-center justify-center cursor-pointer hover:border-blue-400 relative group transition-all shadow-sm';
+                imgWrap.title = "点击上传，或悬停直接按 Ctrl+V 粘贴截图";
+                imgWrap.onmouseenter = () => { hoveredImageIndex = index; imgWrap.classList.add('ring-2', 'ring-blue-500'); }; 
+                imgWrap.onmouseleave = () => { hoveredImageIndex = -1; imgWrap.classList.remove('ring-2', 'ring-blue-500'); };
+                imgWrap.onclick = () => { 
+                    currentUploadIndex = index; 
+                    const uploadInput = document.getElementById('image-upload-input');
+                    if (uploadInput) uploadInput.click(); 
+                };
+                if (item.img) imgWrap.innerHTML = `<img src="${item.img}" class="w-full h-full object-cover"><div class="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100"><i class="fa-solid fa-crop-simple text-white text-xs"></i></div>`; 
+                else imgWrap.innerHTML = `<i class="fa-regular fa-image text-gray-300"></i>`;
+                const tdInner = document.createElement('div'); tdInner.className = 'flex items-center justify-center h-full w-full'; tdInner.appendChild(imgWrap); td.appendChild(tdInner);
+            } else if (col.type === 'checkbox') {
+                td.innerHTML = `<div class="flex items-center justify-center h-full w-full"><label class="relative inline-flex items-center cursor-pointer"><input type="checkbox" class="sr-only peer" ${item[col.key]?'checked':''} onchange="productDatabase['${excelCurrentCategory}'][${index}]['${col.key}'] = this.checked"><div class="w-8 h-4 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:bg-blue-500 shadow-inner after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border after:rounded-full after:h-3 after:w-3 after:transition-all"></div></label></div>`;
+            } else {
+                const input = document.createElement('input'); input.className = 'excel-input transition-colors'; input.placeholder = col.placeholder || ''; input.value = (col.isSpec ? item.specs[col.key] : item[col.key]) || '';
+                input.oninput = (e) => { if (col.isSpec) item.specs[col.key] = e.target.value; else item[col.key] = e.target.value; }; td.appendChild(input);
+            }
+            tr.appendChild(td);
+        }); tbody.appendChild(tr);
+    });
+}
+
+// 悬停截图粘贴（含裁剪）
+document.addEventListener('paste', function(e) {
+    const excelModal = document.getElementById('excel-manager-modal');
+    if (!excelModal || window.getComputedStyle(excelModal).display === 'none') return;
+    const targetIndex = hoveredImageIndex !== -1 ? hoveredImageIndex : currentUploadIndex;
+    if (targetIndex === -1 || !productDatabase[excelCurrentCategory] || !productDatabase[excelCurrentCategory][targetIndex]) return;
+
+    const items = (e.clipboardData || window.clipboardData).items;
+    for (let i = 0; i < items.length; i++) {
+        if (items[i].kind === 'file' && items[i].type.startsWith('image/')) {
+            e.preventDefault(); 
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                openCropModal(event.target.result).then(croppedUrl => {
+                    if(croppedUrl) {
+                        productDatabase[excelCurrentCategory][targetIndex].img = croppedUrl;
+                        excelRenderTable(); showToast("截图填充成功！");
+                    }
+                });
+            }; reader.readAsDataURL(items[i].getAsFile()); break;
+        }
+    }
+});
+
+const excelImgUploadInput = document.getElementById('image-upload-input');
+if(excelImgUploadInput) {
+    excelImgUploadInput.addEventListener('change', function(e) {
+        if(!e.target.files || !e.target.files[0]) return; const reader = new FileReader();
+        reader.onload = function(event) {
+            openCropModal(event.target.result).then(croppedUrl => {
+                if(croppedUrl && currentUploadIndex >= 0) {
+                    productDatabase[excelCurrentCategory][currentUploadIndex].img = croppedUrl;
+                    excelRenderTable(); showToast("图片更新成功！");
+                }
+                currentUploadIndex = -1;
+            });
+        }; reader.readAsDataURL(e.target.files[0]); e.target.value = '';
+    });
+}
+
+// ================= 图片裁剪调节模态框 =================
+let cropScale = 1, cropPanX = 0, cropPanY = 0;
+let cropIsDragging = false, cropStartX = 0, cropStartY = 0;
+let cropImgElement = document.getElementById('crop-image');
+let cropContainer = document.getElementById('crop-container');
+let cropResolve = null; 
+let originalImageObj = new Image();
+
+function openCropModal(imageSrc) {
+    return new Promise((resolve) => {
+        cropResolve = resolve;
+        originalImageObj.onload = () => {
+            if(!cropImgElement) return;
+            cropImgElement.src = imageSrc;
+            const cw = 280, ch = 280;
+            const iw = originalImageObj.width, ih = originalImageObj.height;
+            const scaleBase = Math.max(cw / iw, ch / ih);
+            
+            cropImgElement.style.width = iw + 'px';
+            cropImgElement.style.height = ih + 'px';
+            
+            cropScale = scaleBase;
+            cropPanX = (cw - iw * cropScale) / 2;
+            cropPanY = (ch - ih * cropScale) / 2;
+            
+            const zoomSlider = document.getElementById('crop-zoom');
+            if(zoomSlider) {
+                zoomSlider.min = scaleBase * 0.2;
+                zoomSlider.max = scaleBase * 4;
+                zoomSlider.value = scaleBase;
+            }
+            
+            updateCropTransform();
+            const cm = document.getElementById('crop-modal');
+            if(cm) cm.classList.remove('hidden');
+        };
+        originalImageObj.src = imageSrc;
+    });
+}
+
+function updateCropTransform() {
+    if(cropImgElement) {
+        cropImgElement.style.transform = `translate(${cropPanX}px, ${cropPanY}px) scale(${cropScale})`;
+        cropImgElement.style.transformOrigin = '0 0';
+    }
+}
+
+const cropZoomEl = document.getElementById('crop-zoom');
+if(cropZoomEl) {
+    cropZoomEl.addEventListener('input', (e) => {
+        const newScale = parseFloat(e.target.value);
+        const ratio = newScale / cropScale;
+        const cw = 280 / 2, ch = 280 / 2;
+        cropPanX = cw - (cw - cropPanX) * ratio;
+        cropPanY = ch - (ch - cropPanY) * ratio;
+        cropScale = newScale;
+        updateCropTransform();
+    });
+}
+
+if(cropContainer) {
+    cropContainer.addEventListener('mousedown', startCropDrag);
+    cropContainer.addEventListener('touchstart', startCropDrag, {passive: false});
+}
+window.addEventListener('mousemove', doCropDrag);
+window.addEventListener('touchmove', doCropDrag, {passive: false});
+window.addEventListener('mouseup', endCropDrag);
+window.addEventListener('touchend', endCropDrag);
+
+function startCropDrag(e) {
+    const cm = document.getElementById('crop-modal');
+    if(e.target.id !== 'crop-zoom' && cm && cm.classList.contains('hidden') === false) {
+        cropIsDragging = true;
+        cropStartX = e.type.includes('touch') ? e.touches[0].clientX - cropPanX : e.clientX - cropPanX;
+        cropStartY = e.type.includes('touch') ? e.touches[0].clientY - cropPanY : e.clientY - cropPanY;
+        if(cropContainer) {
+            cropContainer.classList.remove('cursor-grab'); cropContainer.classList.add('cursor-grabbing');
+        }
+    }
+}
+
+function doCropDrag(e) {
+    if (!cropIsDragging) return;
+    e.preventDefault(); 
+    const clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
+    const clientY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
+    cropPanX = clientX - cropStartX;
+    cropPanY = clientY - cropStartY;
+    updateCropTransform();
+}
+
+function endCropDrag() {
+    cropIsDragging = false;
+    if(cropContainer) {
+        cropContainer.classList.add('cursor-grab'); cropContainer.classList.remove('cursor-grabbing');
+    }
+}
+
+function closeCropModal() {
+    const modal = document.getElementById('crop-modal');
+    if(modal) modal.classList.add('hidden');
+    if (cropResolve) cropResolve(null); 
+}
+
+function confirmCrop() {
+    const canvas = document.createElement('canvas');
+    canvas.width = 800; canvas.height = 800;
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, 800, 800);
+    
+    const ratio = 800 / 280;
+    ctx.save();
+    ctx.translate(cropPanX * ratio, cropPanY * ratio);
+    ctx.scale(cropScale * ratio, cropScale * ratio);
+    ctx.drawImage(originalImageObj, 0, 0);
+    ctx.restore();
+    
+    const modal = document.getElementById('crop-modal');
+    if(modal) modal.classList.add('hidden');
+    if (cropResolve) cropResolve(canvas.toDataURL('image/webp', 0.85));
+}
+
+// ================= 模板与字段配置 =================
+function renderTemplates() {
+    const tmplDb = productDatabase['__templates__']; const colC = document.getElementById('column-template-container'); const parseC = document.getElementById('parse-template-container');
+    if(!colC || !parseC) return;
+    let colHtml = `<button onclick="applyTemplate('all')" class="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded text-xs font-medium transition">完整全量</button>`;
+    let parseHtml = `<button onclick="filterParseData('all')" class="px-2.5 py-1 bg-gray-100 text-gray-600 hover:bg-gray-200 rounded text-xs font-medium border border-gray-200 transition">恢复全量</button>`;
+    for (let name in tmplDb) {
+        colHtml += `<div class="group relative flex"><button onclick="applyTemplate('${name}')" class="px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 rounded text-xs font-medium transition pr-6">${name}</button><button onclick="deleteTemplate('${name}', event)" class="absolute right-1 top-1.5 text-indigo-400 hover:text-red-500 hidden group-hover:block"><i class="fa-solid fa-xmark text-[10px]"></i></button></div>`;
+        parseHtml += `<button onclick="filterParseData('${name}')" class="px-2.5 py-1 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 rounded text-xs font-medium border border-indigo-100 transition">${name}</button>`;
+    } colC.innerHTML = colHtml; parseC.innerHTML = parseHtml;
+}
+function saveCurrentAsTemplate() { askPrompt("输入模板名称：", (name) => { if (name && name.trim()) { productDatabase['__templates__'][name.trim()] = specColumns.map(c => c.key); renderTemplates(); showToast('模板保存成功！'); } }); }
+function deleteTemplate(name, event) { event.stopPropagation(); askConfirm(`删除“${name}”？`, () => { delete productDatabase['__templates__'][name]; renderTemplates(); }); }
+function applyTemplate(name) { askConfirm('应用模板？', () => { specColumns = name === 'all' ? [...masterSpecColumns] : (productDatabase['__templates__'][name]||[]).map(k => masterSpecColumns.find(c => c.key === k)).filter(Boolean); productDatabase['__columns__'] = specColumns; updateColumns(); renderColumnManagerList(); showToast('模板应用成功！'); }); }
+function openColumnManager() { const cm = document.getElementById('column-modal'); if(cm) cm.classList.remove('hidden'); renderColumnManagerList(); }
+function closeColumnManager() { const cm = document.getElementById('column-modal'); if(cm) cm.classList.add('hidden'); }
+
+let draggedColumnIndex = null;
+function renderColumnManagerList() {
+    const list = document.getElementById('column-manager-list'); if(!list) return;
+    list.innerHTML = ''; 
+    const countEl = document.getElementById('active-column-count');
+    if(countEl) countEl.innerText = specColumns.length;
+    
+    specColumns.forEach((col, index) => {
+        const li = document.createElement('li'); li.className = 'flex justify-between items-center p-3 hover:bg-gray-50 group cursor-move relative'; li.draggable = true; 
+        li.innerHTML = `<div class="flex items-center gap-3"><i class="fa-solid fa-grip-vertical text-gray-300"></i><i class="fa-solid fa-tag text-gray-400"></i><span class="font-medium text-gray-700">${col.title}</span></div><button onclick="removeCustomColumn('${col.key}')" class="text-gray-400 hover:text-red-500 w-8 h-8 opacity-0 group-hover:opacity-100"><i class="fa-solid fa-trash-can"></i></button>`;
+        li.addEventListener('dragstart', (e) => { draggedColumnIndex = index; li.classList.add('opacity-50'); });
+        li.addEventListener('dragover', (e) => { e.preventDefault(); li.classList.add('border-t-2', 'border-indigo-500'); });
+        li.addEventListener('dragleave', () => li.classList.remove('border-t-2', 'border-indigo-500'));
+        li.addEventListener('dragend', () => { li.classList.remove('opacity-50', 'border-t-2', 'border-indigo-500'); document.querySelectorAll('#column-manager-list li').forEach(item => item.classList.remove('border-t-2', 'border-indigo-500')); draggedColumnIndex = null; });
+        li.addEventListener('drop', (e) => {
+            e.preventDefault(); li.classList.remove('border-t-2', 'border-indigo-500');
+            if (draggedColumnIndex !== null && draggedColumnIndex !== index) { const draggedItem = specColumns[draggedColumnIndex]; specColumns.splice(draggedColumnIndex, 1); specColumns.splice(index, 0, draggedItem); productDatabase['__columns__'] = specColumns; updateColumns(); renderColumnManagerList(); }
+        }); list.appendChild(li);
+    });
+}
+function addCustomColumn() {
+    const inputEl = document.getElementById('new-column-name');
+    if(!inputEl) return;
+    const name = inputEl.value.trim(); if (!name) return showToast('请输入字段名称', 'error');
+    if (specColumns.some(c => c.title === name)) return showToast('字段已存在', 'error');
+    const newCol = { isSpec: true, key: 'spec_' + Date.now(), title: name }; specColumns.push(newCol); masterSpecColumns.push(newCol); productDatabase['__columns__'] = specColumns; inputEl.value = ''; updateColumns(); renderColumnManagerList();
+}
+function removeCustomColumn(key) { askConfirm('确定隐藏该字段吗？', () => { specColumns = specColumns.filter(c => c.key !== key); productDatabase['__columns__'] = specColumns; updateColumns(); renderColumnManagerList(); }); }
+
+
+// ================= 新增：批量粘贴与智能解析引擎 =================
+let pendingBatchItems = [];
+let previewDebounceTimer;
+
+function extractSpecsLocally(rawText) {
+    const result = {}; 
+    const text = rawText.replace(/ⓘ/g, '').replace(/[\r\n]+/g, ' ');
+
+    const stopWords = ['品牌', '商品名称', '商品编号', '适用面积', '型号', '认证型号', '能效网规格型号', '面板材质', '上市时间', '内外机分类', '制热功率', '内机噪音(?:（[^）]+）)?', '扫风方式', '制冷功率', '制热量', '制冷量', '循环风量', '睡眠模式', '内机机身尺寸', '内机尺寸', '电压/频率', '内机净重', '外机尺寸', '外机净重', '能效比', '变频/定频', '定变频', '匹数', '冷凝器材质', '压缩机材质', '蒸发器材质', '操控方式', '类型', '能效等级', '功能', '冷暖类型', '包装清单', '系列', '颜色', '质保说明'];
+    const dynamicStopWords = specColumns.map(c => c.title.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+    const allStopWords = Array.from(new Set([...stopWords, ...dynamicStopWords]));
+    const stopPattern = '(?=\\s*(?:' + allStopWords.join('|') + ')|$)';
+
+    const extract = (keywords) => {
+        for (let kw of keywords) {
+            const regex = new RegExp(kw + "\\s*[:：]?\\s*([\\s\\S]+?)" + stopPattern, "i");
+            const match = text.match(regex);
+            if (match && match[1]) {
+                return match[1].replace(/^[:：\s]+/, '').trim();
+            }
+        }
+        return "";
+    };
+
+    result.brand = extract(['品牌', '商品品牌']);
+    result.modelId = extract(['型号', '机型', '产品型号', '认证型号']);
+    result.productId = extract(['商品编号', '产品编号']);
+    result.coolingCapacity = extract(['制冷量', '额定制冷量']);
+    result.heatingCapacity = extract(['制热量', '额定制热量']);
+    result.coolingPower = extract(['制冷功率']);
+    result.heatingPower = extract(['制热功率']);
+    result.airflow = extract(['循环风量', '风量']);
+    result.inMaxNoise = extract(['内机噪音(?:（[^）]+）)?', '内机最大噪音', '内机噪音']);
+    result.outMaxNoise = extract(['外机最大噪音', '外机噪音']);
+    result.apf = extract(['能效比', 'APF']);
+    result.hp = extract(['匹数']);
+    result.inverter = extract(['变频/定频', '工作方式']);
+    result.applicableArea = extract(['适用面积']);
+    result.refrigerant = extract(['制冷剂', '冷媒']);
+    result.energyLevel = extract(['能效等级']);
+
+    specColumns.forEach(col => {
+        if (!result[col.key]) {
+            const val = extract([col.title]);
+            if (val) result[col.key] = val;
+        }
+    });
+
+    if (!result.modelId) {
+        const fallbackMatch = text.match(/[A-Z0-9]+-\d+[A-Z0-9\-\/]+/i);
+        if (fallbackMatch) result.modelId = fallbackMatch[0];
+    }
+    if (!result.airflow) {
+        const match = text.match(/(\d+)\s*m[3³]\/h/i);
+        if (match) result.airflow = match[0];
+    }
+
+    Object.keys(result).forEach(key => { if(!result[key]) delete result[key]; }); 
+    return result;
+}
+
+function openBatchPasteModal() {
+    const dataCols = excelColumns.filter(c => c.key !== '_action' && c.key !== 'img');
+    const orderHint = dataCols.map(c => c.title).join(' ➔ ');
+    const orderHintEl = document.getElementById('batch-paste-order-hint');
+    if(orderHintEl) orderHintEl.innerText = orderHint;
+    
+    const inputEl = document.getElementById('batch-paste-input');
+    if(inputEl) inputEl.value = '';
+    
+    pendingBatchItems = [];
+    previewBatchPaste(); 
+    
+    const modal = document.getElementById('batch-paste-modal');
+    if(modal) modal.classList.remove('hidden');
+}
+
+function closeBatchPasteModal() { 
+    const modal = document.getElementById('batch-paste-modal');
+    if(modal) modal.classList.add('hidden'); 
+}
+
+function debouncePreview() {
+    clearTimeout(previewDebounceTimer);
+    previewDebounceTimer = setTimeout(previewBatchPaste, 300);
+}
+
+function previewBatchPaste() {
+    const inputEl = document.getElementById('batch-paste-input');
+    if(!inputEl) return;
+    const text = inputEl.value.trim();
+    
+    const modeEl = document.querySelector('input[name="pasteMode"]:checked');
+    const mode = modeEl ? modeEl.value : 'excel';
+    pendingBatchItems = [];
+    const dataCols = excelColumns.filter(c => c.key !== '_action' && c.key !== 'img');
+
+    if (!text) {
+        renderPreviewTable([], dataCols);
+        return;
+    }
+
+    if (mode === 'excel') {
+        const rows = text.split('\n');
+        let startIdx = 0;
+        const firstRowCells = rows[0].split('\t').map(s => s.trim());
+        if (firstRowCells[0] === dataCols[0]?.title || firstRowCells[1] === dataCols[1]?.title) startIdx = 1;
+
+        for (let i = startIdx; i < rows.length; i++) {
+            const rowStr = rows[i].trim();
+            if (!rowStr) continue;
+            const cells = rows[i].split('\t');
+            const newItem = { img: "", isHot: false, specs: {} };
+            dataCols.forEach((col, colIndex) => {
+                const val = cells[colIndex] ? cells[colIndex].trim() : '';
+                if (col.key === 'isHot') { newItem.isHot = (val === '是' || val === 'true' || val === '1' || val.toUpperCase() === 'TRUE'); }
+                else if (col.isSpec) { newItem.specs[col.key] = val; }
+                else { newItem[col.key] = val; }
+            });
+            if (!newItem.name) newItem.name = "批量导入型号_" + (pendingBatchItems.length + 1);
+            newItem.img = generateDynamicImage(newItem.name, excelCurrentCategory);
+            pendingBatchItems.push(newItem);
+        }
+    } else if (mode === 'smart') {
+        const blocks = text.split(/\n\s*\n/).filter(b => b.trim().length > 10);
+        const blocksToProcess = blocks.length > 0 ? blocks : [text];
+        
+        blocksToProcess.forEach(block => {
+            const parsed = extractSpecsLocally(block);
+            if (Object.keys(parsed).length > 0) {
+                const newItem = { img: "", isHot: false, specs: {}, name: "" };
+                dataCols.forEach(col => {
+                    if (col.key === 'isHot') { newItem.isHot = false; }
+                    else if (col.isSpec) { newItem.specs[col.key] = parsed[col.key] || ""; }
+                    else {
+                        if (parsed[col.key]) newItem[col.key] = parsed[col.key];
+                        else newItem[col.key] = "";
+                    }
+                });
+                
+                let np = []; 
+                if(parsed.brand) np.push(parsed.brand); 
+                if(parsed.modelId) np.push(parsed.modelId); 
+                if(np.length) newItem.name = np.join(' ');
+                else newItem.name = "智能解析型号_" + (pendingBatchItems.length + 1);
+                
+                newItem.img = generateDynamicImage(newItem.name, excelCurrentCategory);
+                pendingBatchItems.push(newItem);
+            }
+        });
+    }
+
+    renderPreviewTable(pendingBatchItems, dataCols);
+}
+
+function renderPreviewTable(items, dataCols) {
+    const thead = document.getElementById('preview-table-header');
+    const tbody = document.getElementById('preview-table-body');
+    const emptyState = document.getElementById('preview-empty');
+    const countEl = document.getElementById('preview-count');
+    
+    if(countEl) countEl.innerText = `${items.length} 条记录`;
+    if(thead) thead.innerHTML = dataCols.map(c => `<th class="px-3 py-2 font-semibold text-gray-600">${c.title}</th>`).join('');
+    
+    if (items.length === 0) {
+        if(tbody) tbody.innerHTML = '';
+        if(emptyState) emptyState.classList.remove('hidden');
+        return;
+    }
+    
+    if(emptyState) emptyState.classList.add('hidden');
+    if(tbody) {
+        tbody.innerHTML = items.map(item => {
+            let trHtml = '';
+            dataCols.forEach(col => {
+                let val = col.isSpec ? item.specs[col.key] : item[col.key];
+                if (col.key === 'isHot') val = item.isHot ? '是' : '否';
+                trHtml += `<td class="px-3 py-2 text-gray-800 max-w-[160px] truncate" title="${val||''}">${val||'<span class="text-gray-300">-</span>'}</td>`;
+            });
+            return `<tr class="hover:bg-indigo-50/50">${trHtml}</tr>`;
+        }).join('');
+    }
+}
+
+function processBatchPaste() {
+    if (pendingBatchItems.length === 0) return showToast('预览表格中没有可导入的数据', 'error');
+    if (!productDatabase[excelCurrentCategory]) productDatabase[excelCurrentCategory] = [];
+    productDatabase[excelCurrentCategory].unshift(...pendingBatchItems);
+    excelRenderTable();
+    excelRenderSidebar();
+    closeBatchPasteModal();
+    showToast(`太棒了！成功导入 ${pendingBatchItems.length} 条数据！`);
+}
+
+function triggerTextAI(index) { 
+    currentParseIndex = index; 
+    const inputEl = document.getElementById('ai-text-input');
+    if(inputEl) inputEl.value = ''; 
+    const modal = document.getElementById('text-ai-modal');
+    if(modal) {
+        modal.classList.remove('hidden'); 
+        setTimeout(() => { if(inputEl) inputEl.focus(); }, 100); 
+    }
+}
+
+function closeTextAiModal() { 
+    const modal = document.getElementById('text-ai-modal');
+    if(modal) modal.classList.add('hidden'); 
+}
+function closeParseModal() { 
+    const modal = document.getElementById('parse-preview-modal');
+    if(modal) modal.classList.add('hidden'); 
+}
+
+function startTextAI() { 
+    const inputEl = document.getElementById('ai-text-input');
+    if(!inputEl) return;
+    const text = inputEl.value.trim(); 
+    if (!text) return showToast("请输入文本", "error"); 
+    closeTextAiModal(); 
+    
+    const previewModal = document.getElementById('parse-preview-modal');
+    if(previewModal) previewModal.classList.remove('hidden'); 
+    
+    const loadingEl = document.getElementById('parse-loading');
+    if(loadingEl) loadingEl.classList.remove('hidden'); 
+    
+    const resultArea = document.getElementById('parse-result-area');
+    if(resultArea) resultArea.classList.add('hidden'); 
+    
+    const listEl = document.getElementById('parse-preview-list');
+    if(listEl) listEl.innerHTML = ''; 
+    
+    pendingParseData = {}; originalParseData = {};
+    setTimeout(() => { handleParseResponse(extractSpecsLocally(text)); }, 400); 
+}
+
+function handleParseResponse(parsedData) { 
+    pendingParseData = parsedData; 
+    originalParseData = JSON.parse(JSON.stringify(pendingParseData)); 
+    renderParsePreview(); 
+    const loadingEl = document.getElementById('parse-loading');
+    if(loadingEl) loadingEl.classList.add('hidden'); 
+    const resultArea = document.getElementById('parse-result-area');
+    if(resultArea) resultArea.classList.remove('hidden'); 
+}
+
+function filterParseData(name) {
+    if (Object.keys(originalParseData).length === 0) return; pendingParseData = JSON.parse(JSON.stringify(originalParseData));
+    if (name !== 'all') { const keysToKeep = productDatabase['__templates__'][name] || []; for (let key in pendingParseData) if (!keysToKeep.includes(key)) delete pendingParseData[key]; }
+    renderParsePreview();
+}
+
+function renderParsePreview() {
+    const list = document.getElementById('parse-preview-list'); if(!list) return;
+    list.innerHTML = ''; const dict = {}; specColumns.forEach(c => dict[c.key] = c.title);
+    if (Object.keys(pendingParseData).length === 0) {
+        list.innerHTML = `<tr><td colspan="3" class="p-8 text-center text-gray-500">未提取到数据</td></tr>`;
+    } else {
+        specColumns.forEach((col) => {
+            const key = col.key; if (!pendingParseData.hasOwnProperty(key)) return;
+            const tr = document.createElement('tr'); tr.className = 'hover:bg-teal-50/50 bg-white border-b border-gray-50 cursor-move'; tr.draggable = true; 
+            tr.innerHTML = `<td class="py-2.5 px-4 font-medium text-gray-600 border-r border-gray-100">${col.title}</td><td class="py-1 px-2"><input type="text" class="w-full bg-transparent text-teal-700 font-bold outline-none" value="${pendingParseData[key]}" onchange="pendingParseData['${key}'] = this.value"></td><td class="py-2 px-2 text-center border-l"><button onclick="delete pendingParseData['${key}']; renderParsePreview()" class="text-gray-300 hover:text-red-500 w-8 h-8"><i class="fa-solid fa-trash-can"></i></button></td>`;
+            list.appendChild(tr);
+        });
+    }
+    const select = document.getElementById('parse-add-key'); 
+    if(select) {
+        select.innerHTML = '<option value="">+ 选择缺失参数...</option>';
+        for (let key in dict) if (!pendingParseData.hasOwnProperty(key)) select.innerHTML += `<option value="${key}">${dict[key]}</option>`;
+    }
+}
+
+function addParseField() { 
+    const keyEl = document.getElementById('parse-add-key');
+    const valEl = document.getElementById('parse-add-val');
+    if(!keyEl || !valEl) return;
+    const key = keyEl.value, val = valEl.value.trim(); 
+    if (!key || !val) return; 
+    pendingParseData[key] = val; 
+    valEl.value = ''; 
+    renderParsePreview(); 
+}
+
+function applyParseData() {
+    if (currentParseIndex < 0 || !productDatabase[excelCurrentCategory][currentParseIndex]) return;
+    let row = productDatabase[excelCurrentCategory][currentParseIndex]; if (!row.specs) row.specs = {};
+    for (let key in pendingParseData) row.specs[key] = pendingParseData[key];
+    if(!row.name) { let np = []; if(pendingParseData.brand) np.push(pendingParseData.brand); if(pendingParseData.modelId) np.push(pendingParseData.modelId); if(np.length) row.name = np.join(' '); }
+    excelRenderTable(); closeParseModal(); showToast("参数填入成功！");
+}
+
+// ================= 文件导入导出 =================
+function exportData() {
+    productDatabase['__columns__'] = specColumns; const blob = new Blob([JSON.stringify(productDatabase, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `空调数据库备份_${new Date().toISOString().split('T')[0]}.json`; document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+}
+const btnExport = document.getElementById('excel-export-btn');
+if(btnExport) btnExport.addEventListener('click', exportData);
+
+const handleImport = function(e) {
+    if (!e.target.files || !e.target.files[0]) return;
+    const reader = new FileReader();
+    reader.onload = function(evt) {
+        try {
+            const loadedData = JSON.parse(evt.target.result);
+            if (!loadedData['__templates__']) loadedData['__templates__'] = JSON.parse(JSON.stringify(defaultTemplates));
+            Object.keys(productDatabase).forEach(k => delete productDatabase[k]);
+            Object.assign(productDatabase, loadedData);
+            if (productDatabase['__columns__']) specColumns = productDatabase['__columns__'];
+            cart = [];
+            pkList = [];
+            updateCartUI();
+            updateColumns();
+            renderTemplates();
+            const keys = Object.keys(productDatabase).filter(k => k !== '__columns__' && k !== '__templates__');
+            if (keys.length > 0) {
+                currentCategory = keys[0];
+                excelCurrentCategory = keys[0];
+                currentHpFilter = 'all';
+            }
+            renderSidebar();
+            renderHpFilters(currentCategory);
+            renderProducts(currentCategory);
+            renderHotProducts(currentCategory);
+            excelRenderSidebar();
+            excelRenderTable();
+            scheduleSharedDatabaseSave();
+            showToast('Import completed');
+        } catch (err) {
+            showToast('Import failed: ' + err.message, 'error');
+        }
+        e.target.value = '';
+    };
+    reader.readAsText(e.target.files[0]);
+};
+
+window.addEventListener('storage', function(e) {
+    if (e.key !== SHARED_JSON_DB_STORAGE_KEY) return;
+    reloadLegacyDatabaseFromSharedStorage();
+});
+
+window.addEventListener('pagehide', persistSharedDatabaseFromLegacy);
+
+const importInput = document.getElementById('import-json-input');
+if(importInput) importInput.addEventListener('change', handleImport);
+
+const excelImportBtn = document.getElementById('excel-import-btn');
+if(excelImportBtn) excelImportBtn.addEventListener('change', handleImport);
+
+syncLegacyCategoryCursor();
+renderSidebar();
+renderHpFilters(currentCategory);
+renderProducts(currentCategory);
+renderHotProducts(currentCategory);
+updateCartUI();
+
+</script>
+</body>
+</html>

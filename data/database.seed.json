@@ -1,0 +1,190 @@
+{
+  "meta": {
+    "version": 1,
+    "name": "空调选购指南",
+    "storageMode": "seed-json + localStorage",
+    "updatedAt": "2026-03-27T12:00:00.000Z"
+  },
+  "categories": [
+    {
+      "id": "wall-split",
+      "name": "壁挂机",
+      "code": "WG",
+      "description": "卧室和书房常用的标准挂机。",
+      "accent": "#2563eb",
+      "order": 1,
+      "createdAt": "2026-03-27T12:00:00.000Z",
+      "updatedAt": "2026-03-27T12:00:00.000Z"
+    },
+    {
+      "id": "floor-stand",
+      "name": "立柜式",
+      "code": "LG",
+      "description": "适合大客厅和开放空间的柜机。",
+      "accent": "#0891b2",
+      "order": 2,
+      "createdAt": "2026-03-27T12:00:00.000Z",
+      "updatedAt": "2026-03-27T12:00:00.000Z"
+    },
+    {
+      "id": "ducted",
+      "name": "风管机",
+      "code": "FG",
+      "description": "吊顶隐藏式方案，适合精装修。",
+      "accent": "#0f766e",
+      "order": 3,
+      "createdAt": "2026-03-27T12:00:00.000Z",
+      "updatedAt": "2026-03-27T12:00:00.000Z"
+    },
+    {
+      "id": "central",
+      "name": "中央空调",
+      "code": "ZY",
+      "description": "全屋联动方案，适合多房间部署。",
+      "accent": "#7c3aed",
+      "order": 4,
+      "createdAt": "2026-03-27T12:00:00.000Z",
+      "updatedAt": "2026-03-27T12:00:00.000Z"
+    }
+  ],
+  "products": [
+    {
+      "id": "prod-hualing-n8he1",
+      "categoryId": "wall-split",
+      "name": "华凌 神机 N8HE1 1.5匹",
+      "brand": "华凌",
+      "modelId": "KFR-35GW/N8HE1",
+      "hp": "1.5匹",
+      "guidePrice": 2099,
+      "officialPrice": 2399,
+      "hot": true,
+      "summary": "预算友好的热门挂机，支持自清洁和 APP 控制。",
+      "tags": ["高性价比", "APP 控制", "自清洁"],
+      "image": "",
+      "specs": [
+        { "id": "spec-1", "label": "适用面积", "value": "15-20㎡", "order": 1 },
+        { "id": "spec-2", "label": "APF", "value": "5.27", "order": 2 },
+        { "id": "spec-3", "label": "循环风量", "value": "710m³/h", "order": 3 },
+        { "id": "spec-4", "label": "制冷量", "value": "3500W", "order": 4 },
+        { "id": "spec-5", "label": "噪音", "value": "18dB 低噪", "order": 5 }
+      ],
+      "createdAt": "2026-03-27T12:00:00.000Z",
+      "updatedAt": "2026-03-27T12:00:00.000Z"
+    },
+    {
+      "id": "prod-gree-yunjia",
+      "categoryId": "wall-split",
+      "name": "格力 云佳 1.5匹",
+      "brand": "格力",
+      "modelId": "KFR-35GW/NhGc1B",
+      "hp": "1.5匹",
+      "guidePrice": 2899,
+      "officialPrice": 3199,
+      "hot": true,
+      "summary": "稳定耐用的经典挂机，适合注重售后和耐久度的用户。",
+      "tags": ["销量稳定", "静音", "一级能效"],
+      "image": "",
+      "specs": [
+        { "id": "spec-6", "label": "适用面积", "value": "16-20㎡", "order": 1 },
+        { "id": "spec-7", "label": "APF", "value": "5.28", "order": 2 },
+        { "id": "spec-8", "label": "循环风量", "value": "640m³/h", "order": 3 },
+        { "id": "spec-9", "label": "制热量", "value": "5000W", "order": 4 },
+        { "id": "spec-10", "label": "控制方式", "value": "遥控", "order": 5 }
+      ],
+      "createdAt": "2026-03-27T12:00:00.000Z",
+      "updatedAt": "2026-03-27T12:00:00.000Z"
+    },
+    {
+      "id": "prod-midea-ruiyun",
+      "categoryId": "floor-stand",
+      "name": "美的 锐云 3匹",
+      "brand": "美的",
+      "modelId": "KFR-72LW/N8XHA1",
+      "hp": "3匹",
+      "guidePrice": 5899,
+      "officialPrice": 6499,
+      "hot": true,
+      "summary": "大风量客厅柜机，适合 30 平以上空间快速制冷。",
+      "tags": ["客厅爆款", "广角送风", "大风量"],
+      "image": "",
+      "specs": [
+        { "id": "spec-11", "label": "适用面积", "value": "30-40㎡", "order": 1 },
+        { "id": "spec-12", "label": "APF", "value": "4.42", "order": 2 },
+        { "id": "spec-13", "label": "循环风量", "value": "1300m³/h", "order": 3 },
+        { "id": "spec-14", "label": "制冷功率", "value": "2100W", "order": 4 },
+        { "id": "spec-15", "label": "送风方式", "value": "广角摆风", "order": 5 }
+      ],
+      "createdAt": "2026-03-27T12:00:00.000Z",
+      "updatedAt": "2026-03-27T12:00:00.000Z"
+    },
+    {
+      "id": "prod-haier-jingyue",
+      "categoryId": "floor-stand",
+      "name": "海尔 静悦 3匹",
+      "brand": "海尔",
+      "modelId": "KFR-72LW/03KCA81U1",
+      "hp": "3匹",
+      "guidePrice": 6199,
+      "officialPrice": 6999,
+      "hot": false,
+      "summary": "主打舒适送风和净化功能，适合家庭客餐厅一体空间。",
+      "tags": ["舒适风", "净化", "语音控制"],
+      "image": "",
+      "specs": [
+        { "id": "spec-16", "label": "适用面积", "value": "32-42㎡", "order": 1 },
+        { "id": "spec-17", "label": "APF", "value": "4.35", "order": 2 },
+        { "id": "spec-18", "label": "循环风量", "value": "1250m³/h", "order": 3 },
+        { "id": "spec-19", "label": "净化模式", "value": "除菌净化", "order": 4 },
+        { "id": "spec-20", "label": "控制方式", "value": "APP + 语音", "order": 5 }
+      ],
+      "createdAt": "2026-03-27T12:00:00.000Z",
+      "updatedAt": "2026-03-27T12:00:00.000Z"
+    },
+    {
+      "id": "prod-hitachi-ducted",
+      "categoryId": "ducted",
+      "name": "日立 风管机 3匹",
+      "brand": "日立",
+      "modelId": "RPIZ-72HRN5Q",
+      "hp": "3匹",
+      "guidePrice": 8299,
+      "officialPrice": 8999,
+      "hot": false,
+      "summary": "适合轻奢装修和一拖一吊顶方案，隐藏式观感更完整。",
+      "tags": ["隐藏安装", "轻装修", "静压稳定"],
+      "image": "",
+      "specs": [
+        { "id": "spec-21", "label": "适用面积", "value": "30-45㎡", "order": 1 },
+        { "id": "spec-22", "label": "静压", "value": "30Pa", "order": 2 },
+        { "id": "spec-23", "label": "安装方式", "value": "吊顶暗装", "order": 3 },
+        { "id": "spec-24", "label": "控制方式", "value": "线控器", "order": 4 },
+        { "id": "spec-25", "label": "适配场景", "value": "客餐厅一体", "order": 5 }
+      ],
+      "createdAt": "2026-03-27T12:00:00.000Z",
+      "updatedAt": "2026-03-27T12:00:00.000Z"
+    },
+    {
+      "id": "prod-daikin-central",
+      "categoryId": "central",
+      "name": "大金 一拖三 6匹",
+      "brand": "大金",
+      "modelId": "LMXS60HVMV",
+      "hp": "6匹",
+      "guidePrice": null,
+      "officialPrice": null,
+      "hot": false,
+      "summary": "全屋多联机方案，适合三房两厅及以上户型。",
+      "tags": ["全屋方案", "一拖三", "高端项目"],
+      "image": "",
+      "specs": [
+        { "id": "spec-26", "label": "建议户型", "value": "三房两厅", "order": 1 },
+        { "id": "spec-27", "label": "方案类型", "value": "多联机一拖三", "order": 2 },
+        { "id": "spec-28", "label": "安装要求", "value": "需提前规划铜管与吊顶", "order": 3 },
+        { "id": "spec-29", "label": "报价方式", "value": "按方案面议", "order": 4 },
+        { "id": "spec-30", "label": "适配空间", "value": "90-130㎡", "order": 5 }
+      ],
+      "createdAt": "2026-03-27T12:00:00.000Z",
+      "updatedAt": "2026-03-27T12:00:00.000Z"
+    }
+  ]
+}

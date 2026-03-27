@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>空调后台管理</title>
+  <link rel="stylesheet" href="./styles/main.css" />
+</head>
+<body>
+  <div class="shell">
+    <header class="hero">
+      <div class="hero-copy">
+        <span class="eyebrow">Static Admin</span>
+        <h1>商品后台</h1>
+        <p>Backend writes directly to <code>data/database.json</code> through the local Node API.</p>
+      </div>
+      <div class="hero-actions">
+        <a class="btn btn-secondary" href="./index.html">查看前台</a>
+        <button class="btn btn-secondary" id="export-json-btn" type="button">导出 JSON</button>
+        <label class="btn btn-secondary" for="import-json-input">导入 JSON</label>
+        <input id="import-json-input" type="file" accept=".json,application/json" hidden />
+        <button class="btn btn-danger" id="reset-db-btn" type="button">恢复初始 JSON</button>
+      </div>
+    </header>
+
+    <section class="stat-grid" id="admin-stats"></section>
+
+    <main class="layout admin-layout">
+      <section class="panel panel-spaced">
+        <div class="section-head">
+          <h2>分类管理</h2>
+          <button class="btn btn-secondary" id="new-category-btn" type="button">新建分类</button>
+        </div>
+        <div class="category-list" id="category-list"></div>
+
+        <form class="stack-form" id="category-form">
+          <div class="field">
+            <label for="category-name">分类名称</label>
+            <input id="category-name" type="text" placeholder="例如：壁挂机" required />
+          </div>
+          <div class="form-grid">
+            <div class="field">
+              <label for="category-code">分类代号</label>
+              <input id="category-code" type="text" placeholder="例如：WG" />
+            </div>
+            <div class="field">
+              <label for="category-order">排序</label>
+              <input id="category-order" type="number" min="1" step="1" />
+            </div>
+          </div>
+          <div class="field">
+            <label for="category-accent">主题色</label>
+            <input id="category-accent" type="color" value="#2563eb" />
+          </div>
+          <div class="field">
+            <label for="category-description">分类描述</label>
+            <textarea id="category-description" placeholder="写给后台自己看的分类说明"></textarea>
+          </div>
+          <div class="form-actions">
+            <button class="btn btn-primary" type="submit">保存分类</button>
+            <button class="btn btn-danger" id="delete-category-btn" type="button">删除分类</button>
+          </div>
+        </form>
+      </section>
+
+      <section class="panel panel-spaced">
+        <div class="toolbar">
+          <div class="field grow">
+            <label for="admin-search">搜索商品</label>
+            <input id="admin-search" type="search" placeholder="商品名 / 型号 / 标签 / 规格" />
+          </div>
+          <div class="field small">
+            <label for="category-filter">分类筛选</label>
+            <select id="category-filter"></select>
+          </div>
+          <button class="btn btn-primary" id="new-product-btn" type="button">新建商品</button>
+        </div>
+
+        <div class="data-table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>商品</th>
+                <th>分类</th>
+                <th>匹数</th>
+                <th>指导价</th>
+                <th>热度</th>
+                <th>更新时间</th>
+              </tr>
+            </thead>
+            <tbody id="product-table-body"></tbody>
+          </table>
+        </div>
+
+        <p class="hint" id="admin-note"></p>
+      </section>
+
+      <section class="panel panel-spaced">
+        <div class="section-head">
+          <h2 id="product-form-title">新建商品</h2>
+          <span class="status-chip" id="save-status">未保存</span>
+        </div>
+
+        <form class="stack-form" id="product-form">
+          <div class="field">
+            <label for="product-category">所属分类</label>
+            <select id="product-category" required></select>
+          </div>
+
+          <div class="field">
+            <label for="product-name">商品名称</label>
+            <input id="product-name" type="text" placeholder="例如：华凌 神机 N8HE1 1.5匹" required />
+          </div>
+
+          <div class="form-grid">
+            <div class="field">
+              <label for="product-brand">品牌</label>
+              <input id="product-brand" type="text" placeholder="例如：华凌" />
+            </div>
+            <div class="field">
+              <label for="product-hp">匹数</label>
+              <input id="product-hp" type="text" placeholder="例如：1.5匹" />
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="product-model-id">型号</label>
+            <input id="product-model-id" type="text" placeholder="例如：KFR-35GW/N8HE1" />
+          </div>
+
+          <div class="form-grid">
+            <div class="field">
+              <label for="product-guide-price">指导价</label>
+              <input id="product-guide-price" type="text" placeholder="留空代表面议" />
+            </div>
+            <div class="field">
+              <label for="product-official-price">官方价</label>
+              <input id="product-official-price" type="text" placeholder="留空代表面议" />
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="product-summary">商品摘要</label>
+            <textarea id="product-summary" placeholder="前台卡片会展示这里的摘要"></textarea>
+          </div>
+
+          <div class="field">
+            <label for="product-tags">标签</label>
+            <textarea id="product-tags" placeholder="多个标签用逗号或换行分隔"></textarea>
+          </div>
+
+          <div class="field">
+            <label for="product-image">图片 URL</label>
+            <input id="product-image" type="url" placeholder="可选，留空则自动生成占位图" />
+          </div>
+
+          <div class="field">
+            <label for="product-hot">热门商品</label>
+            <input id="product-hot" type="checkbox" style="width:auto" />
+          </div>
+
+          <div class="spec-editor">
+            <div class="section-head">
+              <h2>扩展规格</h2>
+              <button class="btn btn-secondary" id="add-spec-row-btn" type="button">新增规格</button>
+            </div>
+            <div id="spec-list"></div>
+          </div>
+
+          <div class="form-actions">
+            <button class="btn btn-primary" type="submit">保存商品</button>
+            <button class="btn btn-secondary" id="reset-product-form-btn" type="button">清空表单</button>
+            <button class="btn btn-danger" id="delete-product-btn" type="button">删除商品</button>
+          </div>
+        </form>
+      </section>
+    </main>
+  </div>
+
+  <script type="module" src="./dist/admin.js"></script>
+</body>
+</html>
