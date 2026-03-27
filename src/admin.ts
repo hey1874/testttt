@@ -61,7 +61,7 @@ const elements = {
 
 function getSnapshot(): Database {
   if (!state.snapshot) {
-    throw new Error('后台数据库尚未加载。');
+    throw new Error('Admin data is not loaded yet.');
   }
   return state.snapshot;
 }
@@ -128,7 +128,7 @@ function renderAdminStats(): void {
     <article class="stat-card">
       <span class="stat-label">数据库模式</span>
       <strong class="stat-value">JSON</strong>
-      <span class="stat-note">种子文件 + 浏览器本地覆盖</span>
+      <span class="stat-note">本地 JSON 文件 + 浏览器同步镜像</span>
     </article>
     <article class="stat-card">
       <span class="stat-label">分类 / 商品</span>
@@ -138,7 +138,7 @@ function renderAdminStats(): void {
     <article class="stat-card">
       <span class="stat-label">最近写入</span>
       <strong class="stat-value">${escapeHtml(formatDateTime(snapshot.meta.updatedAt))}</strong>
-      <span class="stat-note">静态托管下不会直接改服务器文件</span>
+      <span class="stat-note">当前修改会直接写入 data/database.json</span>
     </article>
   `;
 }
@@ -160,8 +160,8 @@ function renderCategoryList(): void {
           style="--accent:${escapeHtml(category.accent)}"
         >
           <strong>${escapeHtml(category.name)}</strong>
-          <span>${escapeHtml(category.description || '未填写分类描述')}</span>
-          <small>${count} 个商品 · 排序 ${category.order}</small>
+          <span>${escapeHtml(category.description || '暂无描述')}</span>
+          <small>${count} 个商品 / 排序 ${category.order}</small>
         </button>
       `;
     })
@@ -273,8 +273,8 @@ function renderSpecRows(): void {
     .map(
       (spec, index) => `
         <div class="spec-row">
-          <input type="text" data-spec-index="${index}" data-spec-field="label" value="${escapeHtml(spec.label)}" placeholder="规格名，如 APF" />
-          <input type="text" data-spec-index="${index}" data-spec-field="value" value="${escapeHtml(spec.value)}" placeholder="规格值，如 5.27" />
+          <input type="text" data-spec-index="${index}" data-spec-field="label" value="${escapeHtml(spec.label)}" placeholder="规格名称，如：APF" />
+          <input type="text" data-spec-index="${index}" data-spec-field="value" value="${escapeHtml(spec.value)}" placeholder="规格值，如：5.27" />
           <button class="icon-button" type="button" data-remove-spec="${index}">删除</button>
         </div>
       `,
@@ -333,7 +333,7 @@ function fillProductForm(product: Product): void {
   state.productSpecs = product.specs.map((spec) => ({ ...spec }));
 
   if (elements.productFormTitle) {
-    elements.productFormTitle.textContent = `编辑商品 · ${product.name}`;
+    elements.productFormTitle.textContent = `编辑商品 / ${product.name}`;
   }
   if (elements.productCategory) elements.productCategory.value = product.categoryId;
   if (elements.productName) elements.productName.value = product.name;
@@ -348,7 +348,7 @@ function fillProductForm(product: Product): void {
   if (elements.productImage) elements.productImage.value = product.image;
 
   renderSpecRows();
-  setSaveStatus('已载入', 'neutral');
+  setSaveStatus('已加载', 'neutral');
 }
 
 function readCategoryDraft(): CategoryDraft {
@@ -375,7 +375,7 @@ function readProductDraft(): ProductDraft {
     hot: Boolean(elements.productHot?.checked),
     summary: normalizeText(elements.productSummary?.value),
     tags: normalizeText(elements.productTags?.value)
-      .split(/[，,\n]/)
+      .split(/[|,，\n]/)
       .map((item) => item.trim())
       .filter(Boolean),
     image: normalizeText(elements.productImage?.value),
@@ -411,7 +411,7 @@ function renderAll(): void {
 function bindEvents(): void {
   elements.newCategoryBtn?.addEventListener('click', () => {
     clearCategoryForm();
-    setNote('可以直接创建新分类。静态部署下分类信息同样写入本地浏览器存储。');
+    setNote('可以直接新建分类，保存后会写入 data/database.json。');
   });
 
   elements.categoryList?.addEventListener('click', (event) => {
@@ -439,7 +439,7 @@ function bindEvents(): void {
       fillCategoryForm(category);
       renderAll();
       setSaveStatus('分类已保存', 'success');
-      setNote(`分类“${category.name}”已写入本地数据库。`);
+      setNote(`分类“${category.name}”已写入 data/database.json。`);
     } catch (error) {
       console.error(error);
       setSaveStatus('分类保存失败', 'danger');
@@ -449,10 +449,10 @@ function bindEvents(): void {
 
   elements.deleteCategoryBtn?.addEventListener('click', () => {
     if (!state.editingCategoryId) {
-      setNote('先选择一个分类再删除。');
+      setNote('请先选择要删除的分类。');
       return;
     }
-    if (!window.confirm('删除分类前必须保证该分类下没有商品，确定继续吗？')) {
+    if (!window.confirm('删除该分类前，请先确保这个分类下没有商品。确定继续吗？')) {
       return;
     }
     try {
@@ -482,7 +482,7 @@ function bindEvents(): void {
 
   elements.newProductBtn?.addEventListener('click', () => {
     clearProductForm();
-    setNote('右侧表单已重置，可以创建一个新商品。');
+    setNote('商品表单已重置，可以新建商品。');
   });
 
   elements.productTableBody?.addEventListener('click', (event) => {
@@ -544,7 +544,7 @@ function bindEvents(): void {
       fillProductForm(product);
       renderAll();
       setSaveStatus('商品已保存', 'success');
-      setNote(`商品“${product.name}”已保存到本地数据库。`);
+      setNote(`商品“${product.name}”已写入 data/database.json。`);
     } catch (error) {
       console.error(error);
       setSaveStatus('商品保存失败', 'danger');
@@ -554,7 +554,7 @@ function bindEvents(): void {
 
   elements.deleteProductBtn?.addEventListener('click', () => {
     if (!state.editingProductId) {
-      setNote('先从商品列表中选择一个商品。');
+      setNote('请先选择要删除的商品。');
       return;
     }
     if (!window.confirm('确定删除这个商品吗？')) {
@@ -582,7 +582,7 @@ function bindEvents(): void {
   elements.exportBtn?.addEventListener('click', () => {
     const fileName = `air-guide-database-${new Date().toISOString().slice(0, 10)}.json`;
     downloadFile(fileName, db.exportJson());
-    setNote('已导出当前本地数据库 JSON。');
+    setNote('已导出当前 JSON 数据库。');
   });
 
   elements.importInput?.addEventListener('change', async (event) => {
@@ -612,7 +612,7 @@ function bindEvents(): void {
   });
 
   elements.resetDbBtn?.addEventListener('click', () => {
-    if (!window.confirm('这会清空当前浏览器里的本地修改，恢复到 data/database.json，确定继续吗？')) {
+    if (!window.confirm('这会把当前数据重置为 data/database.seed.json，确定继续吗？')) {
       return;
     }
     state.snapshot = db.resetToSeed();
@@ -621,7 +621,7 @@ function bindEvents(): void {
     clearProductForm();
     renderAll();
     setSaveStatus('已恢复种子数据', 'success');
-    setNote('已恢复到初始 JSON。');
+    setNote('已恢复到初始 JSON 数据。');
   });
 }
 
@@ -632,7 +632,7 @@ async function init(): Promise<void> {
   clearCategoryForm();
   clearProductForm();
   renderAll();
-  setNote('后台已加载。数据默认来自 data/database.json，写操作会落到浏览器 localStorage。');
+  setNote('后台已加载。读取和保存都直接对应 data/database.json。');
 
   db.subscribe(() => {
     state.snapshot = db.getSnapshot();
@@ -646,3 +646,7 @@ init().catch((error) => {
   setSaveStatus('初始化失败', 'danger');
   setNote(error instanceof Error ? error.message : '后台初始化失败。');
 });
+
+
+
+

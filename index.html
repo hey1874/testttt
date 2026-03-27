@@ -886,7 +886,7 @@ function buildSharedDatabaseFromLegacy() {
         meta: {
             version: 1,
             name: 'Air Guide',
-            storageMode: 'seed-json + localStorage',
+            storageMode: 'json-file + local mirror',
             updatedAt: now
         },
         categories: categories,
@@ -1488,6 +1488,7 @@ const masterSpecColumns = [ { isSpec: true, key: 'brand', title: '品牌' }, { i
 let specColumns = [...masterSpecColumns]; let excelColumns = [];
 
 function openExcelManager() {
+    persistSharedDatabaseFromLegacy();
     if (typeof showToast === 'function') showToast('已打开独立后台');
     window.open('./admin.html', '_blank');
 }
@@ -2155,6 +2156,11 @@ const handleImport = function(e) {
 window.addEventListener('storage', function(e) {
     if (e.key !== SHARED_JSON_DB_STORAGE_KEY) return;
     reloadLegacyDatabaseFromSharedStorage();
+});
+
+window.addEventListener('focus', reloadLegacyDatabaseFromSharedStorage);
+document.addEventListener('visibilitychange', function() {
+    if (document.visibilityState === 'visible') reloadLegacyDatabaseFromSharedStorage();
 });
 
 window.addEventListener('pagehide', persistSharedDatabaseFromLegacy);

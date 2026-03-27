@@ -10,9 +10,9 @@ const STATIC_SEED_URL = '/data/database.seed.json';
 const FALLBACK_CATEGORIES: Category[] = [
   {
     id: 'wall-split',
-    name: '壁挂机',
+    name: 'Wall Split',
     code: 'WG',
-    description: '适合卧室与小客厅的常规挂机产品。',
+    description: 'Standard wall-mounted AC for bedrooms and small rooms.',
     accent: '#1d4ed8',
     order: 1,
     createdAt: '2026-03-27T00:00:00.000Z',
@@ -20,9 +20,9 @@ const FALLBACK_CATEGORIES: Category[] = [
   },
   {
     id: 'floor-stand',
-    name: '立柜式',
+    name: 'Floor Stand',
     code: 'LG',
-    description: '适合大客厅、门店和开放空间。',
+    description: 'For large living rooms, shops, and open spaces.',
     accent: '#0891b2',
     order: 2,
     createdAt: '2026-03-27T00:00:00.000Z',
@@ -37,7 +37,7 @@ function nowIso(): string {
 function normalizeCategory(raw: unknown, index: number): Category {
   const item = raw && typeof raw === 'object' ? (raw as Partial<Category>) : {};
   const timestamp = normalizeText(item.updatedAt) || nowIso();
-  const name = normalizeText(item.name) || `分类 ${index + 1}`;
+  const name = normalizeText(item.name) || `Category ${index + 1}`;
 
   return {
     id: normalizeText(item.id) || slugify(name, `category-${index + 1}`),
@@ -77,7 +77,7 @@ function normalizeProduct(raw: unknown, index: number, categories: Category[]): 
   return {
     id: normalizeText(item.id) || createId('product'),
     categoryId: categories.some((category) => category.id === categoryId) ? categoryId : fallbackCategoryId,
-    name: normalizeText(item.name) || `未命名商品 ${index + 1}`,
+    name: normalizeText(item.name) || `Untitled Product ${index + 1}`,
     brand: normalizeText(item.brand),
     modelId: normalizeText(item.modelId),
     hp: normalizeText(item.hp),
@@ -112,7 +112,7 @@ function normalizeDatabase(raw: unknown): Database {
   return {
     meta: {
       version: typeof meta.version === 'number' && Number.isFinite(meta.version) ? meta.version : 1,
-      name: normalizeText(meta.name) || '空调选购指南',
+      name: normalizeText(meta.name) || 'Air Guide',
       storageMode: normalizeText(meta.storageMode) || 'json-file + local mirror',
       updatedAt: normalizeText(meta.updatedAt) || nowIso(),
     },
@@ -185,7 +185,7 @@ export class JsonDatabase {
     this.assertLoaded();
     const categoryName = normalizeText(draft.name);
     if (!categoryName) {
-      throw new Error('分类名称不能为空。');
+      throw new Error('Category name is required.');
     }
 
     const categories = (this.snapshot as Database).categories;
@@ -195,7 +195,7 @@ export class JsonDatabase {
       (category) => category.id !== currentId && category.name === categoryName,
     );
     if (duplicated) {
-      throw new Error('分类名称已存在。');
+      throw new Error('Category name must be unique.');
     }
 
     let category = categories.find((item) => item.id === currentId);
@@ -230,7 +230,7 @@ export class JsonDatabase {
     const snapshot = this.snapshot as Database;
     const hasProducts = snapshot.products.some((product) => product.categoryId === categoryId);
     if (hasProducts) {
-      throw new Error('请先移走或删除该分类下的商品。');
+      throw new Error('Delete products in this category before deleting the category.');
     }
 
     snapshot.categories = snapshot.categories.filter((category) => category.id !== categoryId);
@@ -245,12 +245,12 @@ export class JsonDatabase {
     const snapshot = this.snapshot as Database;
     const categoryId = normalizeText(draft.categoryId);
     if (!snapshot.categories.some((category) => category.id === categoryId)) {
-      throw new Error('请选择有效的商品分类。');
+      throw new Error('Please choose a valid product category.');
     }
 
     const name = normalizeText(draft.name);
     if (!name) {
-      throw new Error('商品名称不能为空。');
+      throw new Error('Product name is required.');
     }
 
     const timestamp = nowIso();
@@ -375,7 +375,7 @@ export class JsonDatabase {
 
   private assertLoaded(): void {
     if (!this.snapshot) {
-      throw new Error('数据库尚未初始化，请先调用 load()。');
+      throw new Error('Database is not loaded yet. Call load() first.');
     }
   }
 
@@ -391,12 +391,12 @@ export class JsonDatabase {
     const request = syncRequest('PUT', REMOTE_DATABASE_URL, payload);
 
     if (!request) {
-      throw new Error('无法连接本地后端，当前修改没有写入 data/database.json。');
+      throw new Error('Unable to reach the local backend. The current change was not written to data/database.json.');
     }
 
     if (request.status < 200 || request.status >= 300) {
       const message = normalizeText(request.responseText) || `HTTP ${request.status}`;
-      throw new Error(`写入 data/database.json 失败：${message}`);
+      throw new Error(`Writing data/database.json failed: ${message}`);
     }
 
     this.remoteMode = true;
@@ -435,3 +435,4 @@ export class JsonDatabase {
     }
   }
 }
+

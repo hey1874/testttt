@@ -12,6 +12,9 @@ const mimeTypes = {
     '.json': 'application/json; charset=utf-8',
     '.svg': 'image/svg+xml'
 };
+function stripBom(value) {
+    return value.charCodeAt(0) === 0xfeff ? value.slice(1) : value;
+}
 function sendJson(response, statusCode, payload) {
     response.writeHead(statusCode, {
         'Content-Type': 'application/json; charset=utf-8',
@@ -55,7 +58,7 @@ async function serveStatic(requestPath, response) {
             'Content-Type': mimeTypes[path.extname(finalPath)] || 'application/octet-stream'
         });
         response.end(content);
-    } catch (error) {
+    } catch  {
         sendText(response, 404, 'Not Found');
     }
 }
@@ -72,7 +75,7 @@ const server = http.createServer(async (request, response)=>{
         }
         if (url.pathname === '/api/database') {
             if (method === 'GET') {
-                const raw = await fs.readFile(databasePath, 'utf8');
+                const raw = stripBom(await fs.readFile(databasePath, 'utf8'));
                 response.writeHead(200, {
                     'Content-Type': 'application/json; charset=utf-8',
                     'Cache-Control': 'no-store'
@@ -81,8 +84,16 @@ const server = http.createServer(async (request, response)=>{
                 return;
             }
             if (method === 'PUT') {
-                const rawBody = await readBody(request);
-                const parsed = JSON.parse(rawBody);
+                const rawBody = stripBom(await readBody(request));
+                let parsed;
+                try {
+                    parsed = JSON.parse(rawBody);
+                } catch  {
+                    sendJson(response, 400, {
+                        error: 'Invalid JSON payload.'
+                    });
+                    return;
+                }
                 if (!isValidDatabaseShape(parsed)) {
                     sendJson(response, 400, {
                         error: 'Invalid database payload.'
