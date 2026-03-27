@@ -71,6 +71,7 @@ async function serveStatic(requestPath: string, response: http.ServerResponse): 
     const content = await fs.readFile(finalPath);
     response.writeHead(200, {
       'Content-Type': mimeTypes[path.extname(finalPath)] || 'application/octet-stream',
+      'Cache-Control': 'no-store',
     });
     response.end(content);
   } catch {
